@@ -19,6 +19,7 @@
 #
 
 import os
+import pytest
 import shutil
 
 from mlt.commands.templates import TemplatesCommand
@@ -26,22 +27,17 @@ from test_utils import project
 from test_utils.io import catch_stdout
 
 
-def test_template_list():
-    args = {
-        'template': 'test',
-        'list': True,
-        '--template-repo': project.basedir()
-    }
-    templates = TemplatesCommand(args)
-    with catch_stdout() as caught_output:
-        templates.action()
-        assert caught_output.getvalue() is not None
+@pytest.mark.parametrize("template_dir", [
+    project.basedir(),
+    "git@github.com:IntelAI/mlt.git",
+    "git@github.com:1ntelA1/mlt.git",
+])
 
-def test_template_list_invalid_repo():
+def test_template_list(template_dir):
     args = {
         'template': 'test',
         'list': True,
-        '--template-repo': "git@github.com:1ntelA1/mlt.git"
+        '--template-repo': template_dir
     }
     templates = TemplatesCommand(args)
     with catch_stdout() as caught_output:
