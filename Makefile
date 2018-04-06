@@ -63,8 +63,10 @@ docker:
 env-up: docker
 	docker-compose up -d
 
-end-down:
+env-down:
 	docker-compose down
+
+env-reset: env-down env-up
 
 # kubeflow is needed for the TFJob operator (our TF templates use this)
 test-e2e: env-up
