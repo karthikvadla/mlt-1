@@ -30,6 +30,7 @@ from test_utils.io import catch_stdout
 @pytest.mark.parametrize("template_dir", [
     project.basedir(),
     "git@github.com:IntelAI/mlt.git",
+    "https://github.com/IntelAI/mlt",
     "git@github.com:1ntelA1/mlt.git",
 ])
 
