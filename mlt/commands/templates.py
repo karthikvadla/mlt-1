@@ -33,9 +33,18 @@ class TemplatesCommand(Command):
         with git_helpers.clone_repo(template_repo) as temp_clone:
             templates_directory = os.path.join(temp_clone, TEMPLATES_DIR)
             templates = self._parse_templates(templates_directory)
-        print(tabulate(templates,
-                       headers=['Template', 'Description'],
-                       tablefmt="simple"))
+            if not templates:
+                if template_repo.startswith("git@github.com") or \
+                   template_repo.startswith("https://github.com"):
+                    print("Please verify git is installed and setup " \
+                          "properly and you have read access to the repo")
+                else:
+                    print("Please make sure template repo directory exists " \
+                          "and you have read access to the directory.")
+            else:
+                print(tabulate(templates,
+                               headers=['Template', 'Description'],
+                               tablefmt="simple"))
 
     def _parse_templates(self, templates_directory):
         """parses template dirs in sorted order, pulling data from READMEs"""
