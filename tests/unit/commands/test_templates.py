@@ -18,18 +18,50 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 
+import os
+import pytest
+import shutil
+
 from mlt.commands.templates import TemplatesCommand
 from test_utils import project
 from test_utils.io import catch_stdout
 
 
-def test_template_list():
+@pytest.mark.parametrize("valid_template_dir", [
+    project.basedir(),
+    "git@github.com:IntelAI/mlt.git",
+    "https://github.com/IntelAI/mlt",
+])
+def test_template_list(valid_template_dir):
     args = {
         'template': 'test',
         'list': True,
-        '--template-repo': project.basedir()
+        '--template-repo': valid_template_dir
     }
     templates = TemplatesCommand(args)
     with catch_stdout() as caught_output:
         templates.action()
         assert caught_output.getvalue() is not None
+
+@pytest.mark.parametrize("invalid_template_dir", [
+    "/tmp/invalid-mlt-dir",
+    "git@github.com:1ntelA1/mlt.git",
+    "https://github.com/1ntelA1/mlt",
+])
+def test_template_list_invalid_repo_dir(invalid_template_dir):
+    invalid_template_dir = "/tmp/invalid-mlt-dir"
+    args = {
+        'template': 'test',
+        'list': True,
+        '--template-repo': invalid_template_dir
+    }
+
+    if invalid_template_dir.startswith("/tmp/"):
+        if os.path.exists(invalid_template_dir):
+            shutil.rmtree(invalid_template_dir)
+
+    templates = TemplatesCommand(args)
+    with catch_stdout() as caught_output:
+        templates.action()
+        assert caught_output.getvalue() is not None
+

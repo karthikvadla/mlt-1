@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 
+import os
 import shutil
 import tempfile
 from contextlib import contextmanager
@@ -34,4 +35,7 @@ def clone_repo(repo):
     try:
         yield destination
     finally:
-        shutil.rmtree(destination)
+        # This is really a bug in 'shutil' as described here:
+        # https://bugs.python.org/issue29699
+        if os.path.exists(destination):
+            shutil.rmtree(destination)
