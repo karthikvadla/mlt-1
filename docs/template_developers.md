@@ -18,6 +18,9 @@ template.  Note that this is the description that will be displayed with
 4. Other files that typically need to be modified for new templates are:
 * `*.py` files
 * `requirements.txt` with any libraries that your app uses
+* `crd-requirements.txt` (optional) with any operators your model depends on.
+By default `crd-check` is performed during `mlt init` and `mlt deploy`
+against this file. [Example](mlt-templates/tf-distributed/crd-requirements.txt)
 * `Dockerfile` if the name of the python file to execute is different,
 etc.
 * `k8s-templates/job.yaml` for the kubernetes job may need to be
@@ -35,4 +38,3 @@ in to the `k8s-templates` directory when the app is deployed.
 parameter with `mlt templates list` and `mlt templates init` in order
 to specify the git url for  template repo (otherwise, this defaults to
 `git@github.com:IntelAI/mlt.git`).
-
