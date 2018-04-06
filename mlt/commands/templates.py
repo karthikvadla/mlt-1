@@ -37,7 +37,7 @@ class TemplatesCommand(Command):
                 if template_repo.startswith("git@github.com") or \
                    template_repo.startswith("https://github.com"):
                     print("Please verify git is installed and setup " \
-                          "properly and you have read access to the repo")
+                          "properly and you have read access to the repo.")
                 else:
                     print("Please make sure template repo directory exists " \
                           "and you have read access to the directory.")
