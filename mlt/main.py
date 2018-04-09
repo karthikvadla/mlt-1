@@ -30,6 +30,7 @@ Usage:
       [--retries=<retries>] [--skip-crd-check] [<kube_spec>]
   mlt undeploy
   mlt (template | templates) list [--template-repo=<repo>]
+  mlt logs_events [--only-logs] [--only-events]
 
 Options:
   --template=<template>     Template name for app
@@ -56,13 +57,16 @@ Options:
   --watch                   Watch project directory and build on file changes
   --no-push                 Deploy your project to kubernetes using the same
                             image from your last run.
+  --only-logs               Displays only logs for the job [default: False]
+  --only-events             Displays only events for the job [default: False]
 
 """
 import re
 from docopt import docopt
 
 from mlt.commands import (BuildCommand, DeployCommand, InitCommand,
-                          TemplatesCommand, UndeployCommand)
+                          TemplatesCommand, UndeployCommand,
+                          LogsEventsCommand)
 
 # every available command and its corresponding action will go here
 COMMAND_MAP = (
@@ -72,6 +76,7 @@ COMMAND_MAP = (
     ('template', TemplatesCommand),
     ('templates', TemplatesCommand),
     ('undeploy', UndeployCommand),
+    ('logs_events', LogsEventsCommand),
 )
 
 
