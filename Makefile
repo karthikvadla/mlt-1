@@ -17,6 +17,8 @@
 
 SHELL=bash
 PY := $(shell python --version 2>&1  | cut -c8)
+VIRTUALENV_DIR=$(if $(subst 2,,$(PY)),.venv3,.venv)
+ACTIVATE="$(VIRTUALENV_DIR)/bin/activate"
 
 .PHONY: venv test lint clean
 
@@ -84,3 +86,16 @@ test-e2e-no-docker:
 clean:
 	rm -rf .venv .venv3
 	find . -name '*.pyc' -delete
+
+dist: venv
+	@echo "Building wheels for distribution..."
+	@echo "Virtual env dir is ${VIRTUALENV_DIR}"
+	@. $(ACTIVATE); pip wheel --wheel-dir=dist -r requirements.txt .
+
+release: dist
+	if [ -r ~/.pypirc ]; then \
+		echo "Uploading to PyPI..." ; \
+		. $(ACTIVATE); twine upload dist/mlt* ; \
+	else \
+		echo "~/.pypirc not found" ; \
+	fi;

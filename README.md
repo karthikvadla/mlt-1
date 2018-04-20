@@ -1,5 +1,9 @@
 # mlt
-Machine Learning Container Tool
+Machine Learning Container Templates
+
+> MLT: it's like the keras of kubernetes
+>
+> \- @mas-dse-greina
 
 [![CircleCI](https://circleci.com/gh/IntelAI/mlt.svg?style=svg&circle-token=239cc4305ca25063bf9a40cd332c822f5e64663f)](https://circleci.com/gh/IntelAI/mlt)
 
@@ -27,19 +31,27 @@ From here, it is a quick step to redeploy the Kubernetes objects, through `mlt d
 Prerequisites:
 - git
 - python
+- pip
 - tox
 - virtualenv
 - TFJob operator (for the distributed tensorflow templates)
 
-Installation:
+### Installation
+
+Local pip installation:
 
 ```bash
-$ make
-# Two different options to running `mlt`:
-$ source ./.venv/bin/activate
-# add this to ~/.bash_profile, ~/.bashrc, etc and then source it for python2 and python3
-alias mlt='{path_to_mlt_repo}/.venv/bin/mlt'
-alias mlt3='{path_to_mlt_repo}/.venv3/bin/mlt'
+$ git clone git@github.com:IntelAI/mlt.git
+Cloning into 'mlt'...
+remote: Counting objects: 1981, done.
+remote: Compressing objects: 100% (202/202), done.
+remote: Total 1981 (delta 202), reused 280 (delta 121), pack-reused 1599
+Receiving objects: 100% (1981/1981), 438.10 KiB | 6.54 MiB/s, done.
+Resolving deltas: 100% (1078/1078), done.
+
+$ cd mlt
+
+$ pip install .
 ```
 
 ## Usage summary

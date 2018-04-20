@@ -41,7 +41,7 @@ def test_run_command(command):
 
 
 @pytest.mark.parametrize('args',
-                         [{'<name>': 'Capitalized_Name',
+                         [{'<name>': 'Capitalized-Name',
                            '-i': False, '--retries': '5'},
                           {'-i': True, '<name>': 'foo', '--retries': '5'},
                           {'-i': True, '<name>': 'foo', '--retries': '8'}])
@@ -53,6 +53,35 @@ def test_main_various_args(run_command, docopt, args):
     args['--namespace'] = 'foo'
     args['--retries'] = int(args['--retries'])
     args['--interactive'] = True
-    args['<name>'] = args['<name>'].lower()
+    args['<name>'] = args['<name>']
     main()
     run_command.assert_called_with(args)
+
+
+@patch('mlt.main.docopt')
+def test_main_invalid_names(docopt_mock):
+    """ Test that an invalid name throws a ValueError """
+    args = {
+        # underscore should not be allowed in name
+        "<name>": "foo_bar"
+    }
+    docopt_mock.return_value = args
+    with pytest.raises(ValueError):
+        main()
+        run_command(args)
+
+
+@patch('mlt.main.docopt')
+def test_main_invalid_namespace(docopt_mock):
+    """ Test that an invalid namespace throws a ValueError """
+    args = {
+        "<name>": "foo",
+        # underscore should not be allowed in namespace
+        "--namespace": "foo_bar",
+        "-i": False,
+        "--retries": 5
+    }
+    docopt_mock.return_value = args
+    with pytest.raises(ValueError):
+        main()
+        run_command(args)

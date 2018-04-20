@@ -21,7 +21,7 @@
 from setuptools import setup, find_packages
 
 setup(name='mlt',
-      description='Machine Learning Container Tool',
+      description='Machine Learning Container Templates',
       long_description=open('README.md').read(),
       author='Intel Nervana',
       author_email='intelnervana@intel.com',

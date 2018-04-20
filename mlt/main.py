@@ -61,12 +61,13 @@ Options:
   --only-events             Displays only events for the job [default: False]
 
 """
-import re
 from docopt import docopt
 
 from mlt.commands import (BuildCommand, DeployCommand, InitCommand,
                           TemplatesCommand, UndeployCommand,
                           LogsEventsCommand)
+from mlt.utils import regex_checks
+
 
 # every available command and its corresponding action will go here
 COMMAND_MAP = (
@@ -101,6 +102,14 @@ def sanitize_input(args, regex=None):
     if args["<name>"]:
         args["<name>"] = args["<name>"].lower()
 
+        if not regex_checks.k8s_name_is_valid(args["<name>"], "pod"):
+            raise ValueError("Name {} not valid.\nName must comply with the "
+                             "Kubernetes naming restrictions, which means that"
+                             " it must consist of lowercase alphanumeric "
+                             "characters or '-' and must start and end with "
+                             "an alphanumeric character.".
+                             format(args["<name>"]))
+
     # -i is an alias, so ensure that we only have to do logic on --interactive
     if args["-i"]:
         args["--interactive"] = True
@@ -109,10 +118,9 @@ def sanitize_input(args, regex=None):
     # https://github.com/docopt/docopt/issues/8
     args['--retries'] = int(args['--retries'])
 
-    # mostly this: max length 253 chars, lower case alphanumeric, -, .
-    kubernetes_name_regex = re.compile(r'^[a-z0-9\.\-]{1,253}$')
-    if args['--namespace'] and not kubernetes_name_regex.match(
-            args['--namespace']):
+    # verify that the specified namespace is valid
+    if args['--namespace'] and not regex_checks.k8s_name_is_valid(
+            args['--namespace'], "namespace"):
         raise ValueError("Namespace {} not valid. See "
                          "https://kubernetes.io/docs/concepts/overview"
                          "/working-with-objects/names/#names".format(
