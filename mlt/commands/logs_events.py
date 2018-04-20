@@ -18,15 +18,7 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 
-import getpass
-import json
-import os
-import sys
-import shutil
-from subprocess import check_output
-import traceback
-
-from mlt import TEMPLATES_DIR
+import subprocess
 from mlt.commands import Command
 from mlt.utils import (process_helpers,
                        config_helpers,
@@ -44,8 +36,26 @@ class LogsEventsCommand(Command):
         Display logs and events for all pods for latest run.
 
         """
-        logs_and_events = self.get_logs_and_events_for_latest_run()
+        self.get_logs_and_events_for_latest_run()
+
 
     def get_logs_and_events_for_latest_run(self):
-        logs_and_events = ""
-        return logs_and_events
+
+        log_cmd = "kubetail {} -n {}".format(self.config["name"],
+                                             self.config['namespace'])
+        self.logs_only(log_cmd)
+
+    def events_only(self):
+        pass
+
+    def logs_only(self, cmd):
+        p = process_helpers.run_popen(cmd,
+                                      shell=True)
+        stdout = []
+        while True:
+            line = p.stdout.readline()
+            stdout.append(line)
+            print line,
+            if line == '' and p.poll() is not None:
+                break
+        return ''.join(stdout)
