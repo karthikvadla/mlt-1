@@ -18,44 +18,40 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 
-import subprocess
+import sys
 from mlt.commands import Command
 from mlt.utils import (process_helpers,
-                       config_helpers,
-                       git_helpers)
+                       config_helpers)
 
 
 
-class LogsEventsCommand(Command):
+class LogsCommand(Command):
     def __init__(self, args):
-        super(LogsEventsCommand, self).__init__(args)
+        super(LogsCommand, self).__init__(args)
         self.config = config_helpers.load_config()
 
     def action(self):
         """
-        Display logs and events for all pods for latest run.
+        Display logs from all pods for latest run.
 
         """
-        self.get_logs_and_events_for_latest_run()
+        self.get_logs()
 
 
-    def get_logs_and_events_for_latest_run(self):
+    def get_logs(self):
 
-        log_cmd = "kubetail {} -n {}".format(self.config["name"],
-                                             self.config['namespace'])
-        self.logs_only(log_cmd)
+        log_cmd = "kubetail {} --since {}m --namespace {}".\
+            format(self.config["name"],
+                   2,
+                   self.config['namespace'])
 
-    def events_only(self):
-        pass
+        logs = process_helpers.run_popen(log_cmd,
+                                         shell=True)
 
-    def logs_only(self, cmd):
-        p = process_helpers.run_popen(cmd,
-                                      shell=True)
-        stdout = []
         while True:
-            line = p.stdout.readline()
-            stdout.append(line)
-            print line,
-            if line == '' and p.poll() is not None:
+            output = logs.stdout.read(1)
+            if output == '' and logs.poll() is not None:
                 break
-        return ''.join(stdout)
+            if output is not '':
+                sys.stdout.write(output)
+                sys.stdout.flush()
