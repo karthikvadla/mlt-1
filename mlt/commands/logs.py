@@ -40,9 +40,9 @@ class LogsCommand(Command):
 
     def get_logs(self):
 
-        log_cmd = "kubetail {} --since {}m --namespace {}".\
+        log_cmd = "kubetail {} --since {} --namespace {}".\
             format(self.config["name"],
-                   2,
+                   self.args["--since"],
                    self.config['namespace'])
 
         logs = process_helpers.run_popen(log_cmd,

@@ -23,14 +23,14 @@ Usage:
   mlt (-h | --help)
   mlt --version
   mlt init [--template=<template> --template-repo=<repo>]
-      [--registry=<registry> --namespace=<namespace]
+      [--registry=<registry> --namespace=<namespace>]
       [--skip-crd-check] <name>
   mlt build [--watch]
   mlt deploy [--no-push] [-i | --interactive]
       [--retries=<retries>] [--skip-crd-check] [<kube_spec>]
   mlt undeploy
   mlt (template | templates) list [--template-repo=<repo>]
-  mlt logs 
+  mlt logs [--since=<duration>]
 
 Options:
   --template=<template>     Template name for app
@@ -57,7 +57,8 @@ Options:
   --watch                   Watch project directory and build on file changes
   --no-push                 Deploy your project to kubernetes using the same
                             image from your last run.
-
+  --since=<duration>        Returns logs newer than a relative 
+                            duration like 10s, 1m, or 2h [default: 1m].
 """
 from docopt import docopt
 
