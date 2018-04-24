@@ -26,7 +26,7 @@ from mock import MagicMock
 
 from mlt.commands.deploy import DeployCommand
 from test_utils.io import catch_stdout
-import json
+
 
 @pytest.fixture
 def sleep(patch):
@@ -98,8 +98,9 @@ def yaml(patch):
     return patch('yaml.load')
 
 @pytest.fixture
-def mock_uuid(patch):
+def uuid_mock(patch):
     return patch('uuid.uuid4')
+
 
 def deploy(no_push, skip_crd_check, interactive, extra_config_args, retries=5):
     deploy = DeployCommand(
@@ -222,23 +223,14 @@ def test_deploy_interactive_pod_not_run(walk_mock, progress_bar, popen_mock,
             extra_config_args={'registry': 'dockerhub', '<kube_spec>': 'r'})
 
 
+def test_deploy_update_app_run_id(open_mock, json_mock):
+    run_id = str(uuid.uuid4())
+    json_mock_data = {
+        'last_remote_container': 'gcr.io/app_name:container_id',
+        'last_push_duration': 0.18889}
+    json_mock.load.return_value = json_mock_data
 
-# def test_deploy_update_app_run_id(walk_mock, progress_bar, popen_mock, open_mock,
-#                     template, kube_helpers, process_helpers, verify_build,
-#                     verify_init, fetch_action_arg, mock_uuid, json_mock):
-#     run_id = str(uuid.uuid4())
-#     mock_uuid.return_value = run_id
-#     json_mock_data = {
-#         'last_remote_container': 'gcr.io/app_name:container_id',
-#         'last_push_duration': 0.18889}
-#     json_mock.load.return_value = json_mock_data
-#
-#     output = deploy(
-#         no_push=False, skip_crd_check=True,
-#         interactive=False,
-#         extra_config_args={'gceProject': 'gcr://projectfoo'})
-#
-#     with open('.push.json_mock', 'r') as f:
-#         data = json.load(f)
-#
-#     assert data['app_run_id'] == run_id
+    DeployCommand._update_app_run_id(run_id)
+
+    assert json_mock_data['app_run_id'] == run_id
+
