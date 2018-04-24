@@ -97,10 +97,6 @@ def walk_mock(patch):
 def yaml(patch):
     return patch('yaml.load')
 
-@pytest.fixture
-def uuid_mock(patch):
-    return patch('uuid.uuid4')
-
 
 def deploy(no_push, skip_crd_check, interactive, extra_config_args, retries=5):
     deploy = DeployCommand(
