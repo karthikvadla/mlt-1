@@ -19,10 +19,11 @@
 #
 
 import sys
+import json
+
 from mlt.commands import Command
 from mlt.utils import (process_helpers,
                        config_helpers)
-
 
 
 class LogsCommand(Command):
@@ -35,15 +36,23 @@ class LogsCommand(Command):
         Display logs from all pods for latest run.
 
         """
-        self.get_logs()
 
+        with open('.push.json', 'r') as f:
+            data = json.load(f)
 
-    def get_logs(self):
+        app_run_id = data['app_run_id'].split("-")
+        prefix = "-".join([self.config["name"], app_run_id[0], app_run_id[1]])
+        since = self.args["--since"]
+        namespace = self.config['namespace']
+        self.get_logs(prefix, since, namespace)
+
+    @staticmethod
+    def get_logs(prefix, since, namespace):
 
         log_cmd = "kubetail {} --since {} --namespace {}".\
-            format(self.config["name"],
-                   self.args["--since"],
-                   self.config['namespace'])
+            format(prefix,
+                   since,
+                   namespace)
 
         logs = process_helpers.run_popen(log_cmd,
                                          shell=True)

@@ -57,7 +57,7 @@ Options:
   --watch                   Watch project directory and build on file changes
   --no-push                 Deploy your project to kubernetes using the same
                             image from your last run.
-  --since=<duration>        Returns logs newer than a relative 
+  --since=<duration>        Returns logs newer than a relative
                             duration like 10s, 1m, or 2h [default: 1m].
 """
 from docopt import docopt
