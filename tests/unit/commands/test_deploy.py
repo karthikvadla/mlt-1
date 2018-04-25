@@ -20,6 +20,7 @@
 
 from __future__ import print_function
 
+import uuid
 import pytest
 from mock import MagicMock
 
@@ -43,7 +44,7 @@ def kube_helpers(patch):
 
 
 @pytest.fixture
-def json(patch):
+def json_mock(patch):
     return patch('json')
 
 
@@ -135,7 +136,10 @@ def verify_successful_deploy(output, did_push=True, interactive=False):
 
 def test_deploy_gce(walk_mock, progress_bar, popen_mock, open_mock,
                     template, kube_helpers, process_helpers, verify_build,
-                    verify_init, fetch_action_arg):
+                    verify_init, fetch_action_arg, json_mock):
+    json_mock.load.return_value = {
+        'last_remote_container': 'gcr.io/app_name:container_id',
+        'last_push_duration': 0.18889}
     output = deploy(
         no_push=False, skip_crd_check=True,
         interactive=False,
@@ -145,7 +149,10 @@ def test_deploy_gce(walk_mock, progress_bar, popen_mock, open_mock,
 
 def test_deploy_docker(walk_mock, progress_bar, popen_mock, open_mock,
                        template, kube_helpers, process_helpers, verify_build,
-                       verify_init, fetch_action_arg):
+                       verify_init, fetch_action_arg, json_mock):
+    json_mock.load.return_value = {
+        'last_remote_container': 'gcr.io/app_name:container_id',
+        'last_push_duration': 0.18889}
     output = deploy(
         no_push=False, skip_crd_check=True,
         interactive=False,
@@ -155,7 +162,10 @@ def test_deploy_docker(walk_mock, progress_bar, popen_mock, open_mock,
 
 def test_deploy_without_push(walk_mock, progress_bar, popen_mock, open_mock,
                              template, kube_helpers, process_helpers,
-                             verify_build, verify_init, fetch_action_arg):
+                             verify_build, verify_init, fetch_action_arg, json_mock):
+    json_mock.load.return_value = {
+        'last_remote_container': 'gcr.io/app_name:container_id',
+        'last_push_duration': 0.18889}
     output = deploy(
         no_push=True, skip_crd_check=True,
         interactive=False,
@@ -167,11 +177,11 @@ def test_deploy_interactive_one_file(walk_mock, progress_bar, popen_mock,
                                      open_mock, template, kube_helpers,
                                      process_helpers, verify_build,
                                      verify_init, fetch_action_arg, sleep,
-                                     yaml, json):
+                                     yaml, json_mock):
     walk_mock.return_value = ['foo']
     yaml.return_value = {
         'template': {'foo': 'bar'}, 'containers': [{'foo': 'bar'}]}
-    json.loads.return_value = {'status': {'phase': 'Running'}}
+    json_mock.loads.return_value = {'status': {'phase': 'Running'}}
     output = deploy(
         no_push=False, skip_crd_check=True,
         interactive=True,
@@ -183,8 +193,8 @@ def test_deploy_interactive_two_files(walk_mock, progress_bar, popen_mock,
                                       open_mock, template, kube_helpers,
                                       process_helpers, verify_build,
                                       verify_init, fetch_action_arg, sleep,
-                                      yaml, json):
-    json.loads.return_value = {'status': {'phase': 'Running'}}
+                                      yaml, json_mock):
+    json_mock.loads.return_value = {'status': {'phase': 'Running'}}
     yaml.return_value = {
         'template': {'foo': 'bar'}, 'containers': [{'foo': 'bar'}]}
     output = deploy(
@@ -198,8 +208,8 @@ def test_deploy_interactive_pod_not_run(walk_mock, progress_bar, popen_mock,
                                         open_mock, template, kube_helpers,
                                         process_helpers, verify_build,
                                         verify_init, fetch_action_arg, sleep,
-                                        yaml, json):
-    json.loads.return_value = {'status': {'phase': 'Error'}}
+                                        yaml, json_mock):
+    json_mock.loads.return_value = {'status': {'phase': 'Error'}}
     yaml.return_value = {
         'template': {'foo': 'bar'}, 'containers': [{'foo': 'bar'}]}
     with pytest.raises(ValueError):
@@ -207,3 +217,16 @@ def test_deploy_interactive_pod_not_run(walk_mock, progress_bar, popen_mock,
             no_push=False, skip_crd_check=True,
             interactive=True,
             extra_config_args={'registry': 'dockerhub', '<kube_spec>': 'r'})
+
+
+def test_deploy_update_app_run_id(open_mock, json_mock):
+    run_id = str(uuid.uuid4())
+    json_mock_data = {
+        'last_remote_container': 'gcr.io/app_name:container_id',
+        'last_push_duration': 0.18889}
+    json_mock.load.return_value = json_mock_data
+
+    DeployCommand._update_app_run_id(run_id)
+
+    assert json_mock_data['app_run_id'] == run_id
+

@@ -36,9 +36,14 @@ Prerequisites:
 - virtualenv
 - TFJob operator (for the distributed tensorflow templates)
 
-### Installation
+## Installation
 
-Local pip installation:
+### Install from [PyPI](https://pypi.org/)
+```bash
+$ pip install mlt
+```
+
+### Installation from Source
 
 ```bash
 $ git clone git@github.com:IntelAI/mlt.git
@@ -52,6 +57,14 @@ Resolving deltas: 100% (1078/1078), done.
 $ cd mlt
 
 $ pip install .
+```
+
+## Create local Python distributions
+```bash
+$ make dist
+$ cd dist
+$ ls mlt*
+mlt-0.1.0a1+12.gf49c412.dirty-py2.py3-none-any.whl
 ```
 
 ## Usage summary
