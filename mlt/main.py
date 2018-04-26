@@ -30,6 +30,7 @@ Usage:
       [--retries=<retries>] [--skip-crd-check] [<kube_spec>]
   mlt undeploy
   mlt (template | templates) list [--template-repo=<repo>]
+  mlt events
 
 Options:
   --template=<template>     Template name for app
@@ -61,7 +62,7 @@ Options:
 from docopt import docopt
 
 from mlt.commands import (BuildCommand, DeployCommand, InitCommand,
-                          TemplatesCommand, UndeployCommand)
+                          TemplatesCommand, UndeployCommand, EventsCommand)
 from mlt.utils import regex_checks
 
 # every available command and its corresponding action will go here
@@ -72,6 +73,7 @@ COMMAND_MAP = (
     ('template', TemplatesCommand),
     ('templates', TemplatesCommand),
     ('undeploy', UndeployCommand),
+    ('events', EventsCommand)
 )
 
 

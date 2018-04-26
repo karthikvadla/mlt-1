@@ -18,10 +18,21 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 
-from mlt.commands.base import Command  # noqa
-from mlt.commands.build import BuildCommand  # noqa
-from mlt.commands.deploy import DeployCommand  # noqa
-from mlt.commands.init import InitCommand  # noqa
-from mlt.commands.templates import TemplatesCommand  # noqa
-from mlt.commands.undeploy import UndeployCommand  # noqa
-from mlt.commands.events import EventsCommand  # noqa
+import sys
+import json
+
+from mlt.commands import Command
+from mlt.utils import (process_helpers,
+                       config_helpers)
+
+
+class EventsCommand(Command):
+    def __init__(self, args):
+        super(EventsCommand, self).__init__(args)
+        self.config = config_helpers.load_config()
+
+    def action(self):
+        """
+        Display events for the latest run
+        """
+        pass
