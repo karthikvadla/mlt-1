@@ -21,7 +21,6 @@
 from __future__ import print_function
 
 import pytest
-from mock import MagicMock
 
 import uuid
 from mlt.commands.logs import LogsCommand
@@ -40,7 +39,7 @@ def open_mock(patch):
 
 @pytest.fixture
 def process_helpers(patch):
-    return patch('process_helpers')
+    return patch('process_helpers.run_popen')
 
 @pytest.fixture
 def verify_init(patch):
@@ -59,7 +58,10 @@ def test_logs_get_logs(json_mock, open_mock, verify_init, process_helpers):
     logs_command = LogsCommand({'logs': True, '--since': '1m'})
     logs_command.config = {'name': 'app', 'namespace': 'namespace'}
 
+    log_value = '-'.join(['app', run_id])
+    process_helpers.return_value.stdout.read.side_effect = [log_value, '']
+    process_helpers.return_value.poll.return_value = 1
     with catch_stdout() as caught_output:
         logs_command.action()
         output = caught_output.getvalue()
-    return output
+    assert log_value in output
