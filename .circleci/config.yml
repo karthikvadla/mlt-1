@@ -34,11 +34,35 @@ jobs:
           name: lint tests
           command: |
             make lint
-      
+
       - run:
           name: Run unit tests
           command: |
             make test
+
+      - run:
+          name: Run make dist and test the wheels and versions
+          command: |
+            make dist
+            SHORT_HASH=$(git rev-parse --short HEAD)
+            MLT_DIST_WHEEL="mlt*${SHORT_HASH}*-py2.py3-none-any.whl"
+            ls dist/${MLT_DIST_WHEEL}
+            if [[ $? != 0 ]]; then
+                exit 1
+            fi
+            pip install --no-cache-dir pip==9.0.1
+            PIP=/usr/local/bin/pip
+            $PIP install -I dist/${MLT_DIST_WHEEL}
+            PIP_DEPS=$(${PIP} freeze)
+            if [[ $PIP_DEPS != *"mlt=="*"${SHORT_HASH}"* ]]; then
+                exit 1
+            fi
+            . .venv/bin/activate
+            MLT_VERSION=$(mlt --version)
+            if [[ $MLT_VERSION != *"${SHORT_HASH}"* ]]; then
+                exit 1
+            fi
+            deactivate
 
       - run:
           name: Installing docker dependencies

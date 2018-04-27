@@ -19,5 +19,9 @@
 #
 
 import os
+from ._version import get_versions
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+__version__ = get_versions()['version']
+del get_versions

@@ -60,6 +60,8 @@ Options:
   --since=<duration>        Returns logs newer than a relative
                             duration like 10s, 1m, or 2h [default: 1m].
 """
+import mlt
+
 from docopt import docopt
 
 from mlt.commands import (BuildCommand, DeployCommand, InitCommand,
@@ -130,5 +132,6 @@ def sanitize_input(args, regex=None):
 
 def main():
     args = sanitize_input(
-        docopt(__doc__, version="ML Container Templates v0.0.1"))
+        docopt(__doc__, version="ML Container Templates Version {}".
+               format(mlt.__version__)))
     run_command(args)

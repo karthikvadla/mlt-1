@@ -19,8 +19,11 @@
 #
 
 from setuptools import setup, find_packages
+import versioneer
 
 setup(name='mlt',
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass(),
       description='Machine Learning Container Templates',
       long_description=open('README.md').read(),
       author='Intel Nervana',

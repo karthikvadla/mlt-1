@@ -1,2 +1,4 @@
 include README.md
 graft mlt-templates
+include versioneer.py
+include mlt/_version.py
