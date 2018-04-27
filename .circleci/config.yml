@@ -41,7 +41,7 @@ jobs:
             make test
 
       - run:
-          name: Run make dist
+          name: Run make dist and test the wheels and versions
           command: |
             make dist
             SHORT_HASH=$(git rev-parse --short HEAD)
@@ -57,6 +57,12 @@ jobs:
             if [[ $PIP_DEPS != *"mlt=="*"${SHORT_HASH}"* ]]; then
                 exit 1
             fi
+            . .venv/bin/activate
+            MLT_VERSION=$(mlt --version)
+            if [[ $MLT_VERSION != *"${SHORT_HASH}"* ]]; then
+                exit 1
+            fi
+            deactivate
 
       - run:
           name: Installing docker dependencies

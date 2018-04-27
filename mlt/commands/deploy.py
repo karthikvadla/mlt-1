@@ -293,6 +293,7 @@ class DeployCommand(Command):
                 tries, self.args['--retries']))
             time.sleep(1)
 
+        # Get shell to the specified pod running in the user's namespace
         process_helpers.run_popen(
-            ["kubectl", "exec", "-it", podname,
+            ["kubectl", "exec", "-it", podname, "--namespace", self.namespace,
              "/bin/bash"], stdout=None, stderr=None).wait()
