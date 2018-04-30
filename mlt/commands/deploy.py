@@ -67,10 +67,13 @@ class DeployCommand(Command):
         progress_bar.duration_progress(
             'Pushing ', last_push_duration,
             lambda: self.push_process.poll() is not None)
+
+        # If the push fails, get the stdout and error message and display them
+        # to the user, with the error message in red.
         if self.push_process.poll() != 0:
-            push_error = self.push_process.communicate()
-            print(colored(push_error[0], 'red'))
-            print(colored(push_error[1], 'red'))
+            push_stdout, push_error = self.push_process.communicate()
+            print(push_stdout.decode("utf-8"))
+            print(colored(push_error.decode("utf-8"), 'red'))
             sys.exit(1)
 
         with open('.push.json', 'w') as f:

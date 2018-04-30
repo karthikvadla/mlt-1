@@ -239,3 +239,38 @@ def test_deploy_update_app_run_id(open_mock, json_mock):
 
     assert json_mock_data['app_run_id'] == run_id
 
+
+def test_image_push_error(walk_mock, progress_bar, popen_mock, open_mock,
+                    template, kube_helpers, process_helpers, verify_build,
+                    verify_init, fetch_action_arg, json_mock):
+    json_mock.load.return_value = {
+        'last_remote_container': 'gcr.io/app_name:container_id',
+        'last_push_duration': 0.18889}
+
+    # setup mock to induce and error during the deploy
+    popen_mock.return_value.poll.return_value = 1
+    output_str = "normal output..."
+    error_str = "error message..."
+    build_output = MagicMock()
+    build_output.decode.return_value = output_str
+    error_output = MagicMock()
+    error_output.decode.return_value = error_str
+    popen_mock.return_value.communicate.return_value = (build_output,
+                                                        error_output)
+
+    deploy_cmd = DeployCommand({'deploy': True,
+                                '--skip-crd-check': True,
+                                '--no-push': False})
+    deploy_cmd.config = {'name': 'app', 'namespace': 'namespace'}
+    deploy_cmd.config.update({'gceProject': 'gcr://projectfoo'})
+
+    with catch_stdout() as caught_output:
+        with pytest.raises(SystemExit):
+            deploy_cmd.action()
+        output = caught_output.getvalue()
+
+    # assert that we got the normal output, followed by the error message
+    output_location = output.find(output_str)
+    error_location = output.find(error_str)
+    assert all(var >= 0 for var in (output_location, error_location))
+    assert output_location < error_location

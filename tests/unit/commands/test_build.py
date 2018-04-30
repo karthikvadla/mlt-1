@@ -20,21 +20,39 @@
 
 from __future__ import print_function
 
+import pytest
+
 from mock import patch, MagicMock
 from test_utils.io import catch_stdout
 
 from mlt.commands.build import BuildCommand
 
 
-@patch('mlt.commands.build.config_helpers.load_config')
-@patch('mlt.commands.build.open')
-@patch('mlt.commands.build.process_helpers.run_popen')
-@patch('mlt.commands.build.progress_bar')
-def test_simple_build(progress_bar, popen, open_mock,
-                      verify_init):
-    progress_bar.duration_progress.side_effect = \
+@pytest.fixture
+def init_mock(patch):
+    return patch('config_helpers.load_config')
+
+
+@pytest.fixture
+def open_mock(patch):
+    return patch('open')
+
+
+@pytest.fixture
+def progress_bar_mock(patch):
+    return patch('progress_bar')
+
+
+@pytest.fixture
+def popen_mock(patch):
+    popen = MagicMock()
+    popen.return_value.poll.return_value = 0  # success
+    return patch('process_helpers.run_popen', popen)
+
+
+def test_simple_build(progress_bar_mock, popen_mock, open_mock, init_mock):
+    progress_bar_mock.duration_progress.side_effect = \
         lambda x, y, z: print('Building')
-    popen.return_value.poll.return_value = 0
 
     build = BuildCommand({'build': True, '--watch': False})
     build.config = MagicMock()
@@ -51,11 +69,35 @@ def test_simple_build(progress_bar, popen, open_mock,
     assert starting < building < built
 
 
-@patch('mlt.commands.build.config_helpers.load_config')
+def test_build_errors(popen_mock, progress_bar_mock, open_mock, init_mock):
+    popen_mock.return_value.poll.return_value = 1  # set to 1 for error
+    output_str = "normal output..."
+    error_str = "error message..."
+    build_output = MagicMock()
+    build_output.decode.return_value = output_str
+    error_output = MagicMock()
+    error_output.decode.return_value = error_str
+    popen_mock.return_value.communicate.return_value = (build_output,
+                                                        error_output)
+
+    build = BuildCommand({'build': True, '--watch': False})
+    build.config = MagicMock()
+
+    with catch_stdout() as caught_output:
+        with pytest.raises(SystemExit):
+            build.action()
+        output = caught_output.getvalue()
+
+    # assert that we got the normal output and then the error output
+    output_location = output.find(output_str)
+    error_location = output.find(error_str)
+    assert all(var >= 0 for var in (output_location, error_location))
+    assert output_location < error_location
+
+
 @patch('mlt.commands.build.time.sleep')
 @patch('mlt.commands.build.Observer')
-@patch('mlt.commands.build.open')
-def test_watch_build(open_mock, observer, sleep_mock, verify_init):
+def test_watch_build(observer, sleep_mock, open_mock, init_mock):
     sleep_mock.side_effect = KeyboardInterrupt
 
     build = BuildCommand({'build': True, '--watch': True})

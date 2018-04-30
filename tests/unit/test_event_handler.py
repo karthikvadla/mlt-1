@@ -28,7 +28,7 @@ from test_utils.io import catch_stdout
 def test_dispatch_git(call):
     """if event relates to git we return immediately"""
     event_handler = EventHandler(lambda: 'foo')
-    event_handler.dispatch(MagicMock(src_path='./.git'))
+    event_handler.dispatch(MagicMock(src_path='./.git/index'))
     call.assert_not_called()
 
 
@@ -59,4 +59,4 @@ def test_dispatch(call, open_mock):
     with catch_stdout() as caught_output:
         event_handler.dispatch(MagicMock(src_path='/foo'))
         output = caught_output.getvalue()
-    assert output == 'event.src_path /foo\n'
+    assert output == 'Detected change in /foo\n'

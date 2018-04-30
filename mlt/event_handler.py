@@ -30,10 +30,19 @@ class EventHandler(object):
         self.dirty = False
         self.timer = None
         self.callback = callback
+        self.ignore_directories = ["./.git"]
+        self.ignore_files = ["./"]
 
     def dispatch(self, event):
-        if event.src_path in ("./.git", "./"):
-            return
+        # TODO(niklas): Could be smarter with a os.path.basename(),
+        #               but doing a prefix check for now.
+        for directory in self.ignore_directories:
+            if event.src_path.startswith(directory):
+                return
+
+        for f in self.ignore_files:
+            if event.src_path == f:
+                return
 
         is_ignored = call(["git", "check-ignore", event.src_path],
                           stdout=open(os.devnull, 'wb')) == 0
@@ -43,7 +52,7 @@ class EventHandler(object):
         if self.timer:
             self.timer.cancel()
 
-        print("event.src_path {}".format(event.src_path))
+        print("Detected change in {}".format(event.src_path))
 
         self.timer = Timer(3, lambda: self.callback())
         self.timer.start()
