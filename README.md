@@ -34,7 +34,7 @@ Prerequisites:
 - pip
 - tox
 - virtualenv
-- TFJob operator (for the distributed tensorflow templates)
+- [TFJob operator](https://github.com/kubeflow/tf-operator#installing-the-tfjob-crd-and-operator-on-your-k8s-cluster) (for the distributed tensorflow templates)
 
 ## Installation
 

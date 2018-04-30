@@ -59,8 +59,11 @@ class BuildCommand(Command):
             'Building', last_build_duration,
             lambda: build_process.poll() is not None)
         if build_process.poll() != 0:
-            print(colored(build_process.communicate()[0].decode("utf-8"),
-                          'red'))
+            # When we have an error, get the stdout and error output
+            # and display them both with the error output in red.
+            output, error_msg = build_process.communicate()
+            print(output.decode("utf-8"))
+            print(colored(error_msg.decode("utf-8"), 'red'))
             sys.exit(1)
 
         built_time = time.time()

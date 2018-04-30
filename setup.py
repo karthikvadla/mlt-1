@@ -28,7 +28,7 @@ setup(name='mlt',
       long_description=open('README.md').read(),
       author='Intel Nervana',
       author_email='intelnervana@intel.com',
-      url='http://www.intelnervana.com',
+      url='https://github.com/IntelAI/mlt',
       packages=find_packages(exclude=["tests"]),
       install_requires=[
           'pip>=9.0.1',
