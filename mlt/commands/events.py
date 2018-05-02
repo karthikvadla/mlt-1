@@ -35,4 +35,32 @@ class EventsCommand(Command):
         """
         Display events for the latest run
         """
-        pass
+        with open('.push.json', 'r') as f:
+            data = json.load(f)
+
+        app_run_id = data['app_run_id'].split('-')
+        filter_tag = "-".join([self.config["name"],
+                               app_run_id[0],
+                               app_run_id[1],
+                               app_run_id[2],
+                               app_run_id[3]])
+        namespace = self.config['namespace']
+        self.get_events(filter_tag, namespace)
+
+    @staticmethod
+    def get_events(filter_tag, namespace):
+
+        awk = 'awk \'NR=1 || /{}/\''.format(filter_tag)
+        events_cmd = "kubectl get events " \
+                     "--namespace {} | {}"\
+            .format(namespace, awk)
+
+        events = process_helpers.run_popen(events_cmd, shell=True)
+
+        while True:
+            output = events.stdout.read(1)
+            if output == '' and events.poll() is not None:
+                break
+            if output is not '':
+                sys.stdout.write(output)
+                sys.stdout.flush()
