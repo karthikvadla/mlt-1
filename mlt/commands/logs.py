@@ -17,9 +17,10 @@
 #
 # SPDX-License-Identifier: EPL-2.0
 #
-
-import sys
 import json
+import os
+import sys
+
 
 from mlt.commands import Command
 from mlt.utils import (process_helpers,
@@ -36,11 +37,20 @@ class LogsCommand(Command):
         Display logs from all pods for latest run.
 
         """
-
-        with open('.push.json', 'r') as f:
-            data = json.load(f)
+        if os.path.exists('.push.json'):
+            with open('.push.json', 'r') as f:
+                data = json.load(f)
+        else:
+            print("This app has not been deployed yet,"
+                  "so there are no logs to display.")
+            sys.exit(1)
 
         app_run_id = data['app_run_id'].split("-")
+
+        if len(app_run_id) < 2:
+            print("Please re-deploy app again, something went wrong.")
+            sys.exit(1)
+
         prefix = "-".join([self.config["name"], app_run_id[0], app_run_id[1]])
         since = self.args["--since"]
         namespace = self.config['namespace']
@@ -53,9 +63,14 @@ class LogsCommand(Command):
             format(prefix,
                    since,
                    namespace)
-
-        logs = process_helpers.run_popen(log_cmd,
-                                         shell=True)
+        try:
+            logs = process_helpers.run_popen(log_cmd,
+                                             shell=True)
+        except Exception as ex:
+            print("Please make sure you installed "
+                  "all prerequisites listed in Readme.")
+            print("Exception: {}".format(ex))
+            sys.exit()
 
         while True:
             output = logs.stdout.read(1)

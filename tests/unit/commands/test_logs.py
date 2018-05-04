@@ -31,11 +31,9 @@ from test_utils.io import catch_stdout
 def json_mock(patch):
     return patch('json')
 
-
 @pytest.fixture
 def open_mock(patch):
     return patch('open')
-
 
 @pytest.fixture
 def process_helpers(patch):
@@ -45,9 +43,13 @@ def process_helpers(patch):
 def verify_init(patch):
     return patch('config_helpers.load_config')
 
+@pytest.fixture
+def os_path_mock(patch):
+    return patch('os.path')
 
-def test_logs_get_logs(json_mock, open_mock, verify_init, process_helpers):
+def test_logs_get_logs(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
     run_id = str(uuid.uuid4())
+    os_path_mock.exists.return_value = True
     json_mock_data = {
         'last_remote_container': 'gcr.io/app_name:container_id',
         'last_push_duration': 0.18889,
@@ -65,3 +67,38 @@ def test_logs_get_logs(json_mock, open_mock, verify_init, process_helpers):
         logs_command.action()
         output = caught_output.getvalue()
     assert log_value in output
+
+
+def test_logs_no_push_json_file(open_mock, verify_init, process_helpers, os_path_mock):
+    os_path_mock.exists.return_value = False
+
+    logs_command = LogsCommand({'logs': True, '--since': '1m'})
+    logs_command.config = {'name': 'app', 'namespace': 'namespace'}
+
+    with catch_stdout() as caught_output:
+        with pytest.raises(SystemExit):
+            logs_command.action()
+        output = caught_output.getvalue()
+
+    not_deployed = output.find("This app has not been deployed yet")
+    assert not_deployed >= 0
+
+def test_logs_corrupted_app_run_id(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
+    run_id = '31dea6fc'
+    os_path_mock.exists.return_value = True
+    json_mock_data = {
+        'last_remote_container': 'gcr.io/app_name:container_id',
+        'last_push_duration': 0.18889,
+        'app_run_id': run_id}
+    json_mock.load.return_value = json_mock_data
+
+    logs_command = LogsCommand({'logs': True, '--since': '1m'})
+    logs_command.config = {'name': 'app', 'namespace': 'namespace'}
+
+    with catch_stdout() as caught_output:
+        with pytest.raises(SystemExit):
+            logs_command.action()
+        output = caught_output.getvalue()
+
+    wrong = output.find("Please re-deploy app again, something went wrong.")
+    assert wrong >= 0

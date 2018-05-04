@@ -31,6 +31,7 @@ From here, it is a quick step to redeploy the Kubernetes objects, through `mlt d
 Prerequisites:
 - [Docker](https://docs.docker.com/install/)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- [kubetail](https://github.com/johanhaleby/kubetail)
 - [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 - [python](https://www.python.org/downloads/)
 - [pip](https://pip.pypa.io/en/stable/installing/)

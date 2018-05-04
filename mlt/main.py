@@ -30,7 +30,7 @@ Usage:
       [--retries=<retries>] [--skip-crd-check] [<kube_spec>]
   mlt undeploy
   mlt (template | templates) list [--template-repo=<repo>]
-  mlt logs [--since=<duration>]
+  mlt (log | logs) [--since=<duration>]
 
 Options:
   --template=<template>     Template name for app
