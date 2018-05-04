@@ -54,7 +54,7 @@ RUN mv ./kubectl /usr/local/bin/kubectl
 COPY ./resources/config.yaml /root/.kube/config
 
 ENV NAMESPACE kubeflow
-ENV VERSION v0.1.0-rc.4
+ENV VERSION 3920d1402f40455c0f3e5f54ea4cc8142c23c2c8
 ENV APP_NAME kubeflow
 ENV KUBECONFIG /root/.kube/config
 # workaround for https://github.com/ksonnet/ksonnet/issues/298
@@ -74,7 +74,9 @@ RUN ks env set default --namespace $NAMESPACE
 RUN ks registry add kubeflow github.com/kubeflow/kubeflow/tree/$VERSION/kubeflow
 RUN ks pkg install kubeflow/core@$VERSION
 RUN ks pkg install kubeflow/tf-job@$VERSION
+RUN ks pkg install kubeflow/pytorch-job@$VERSION
 RUN ks generate kubeflow-core kubeflow-core
+RUN ks generate pytorch-operator pytorch-operator
 
 ADD . /usr/share/mlt
 

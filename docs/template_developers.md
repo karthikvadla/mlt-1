@@ -1,7 +1,7 @@
 # Template Developers Manual
 
 The easiest way to add a new template to MLT is to make a copy of one
-of the existing templates and then modify it.  The following
+of the existing templates and then modify it. The following
 instructions will go through those steps:
 
 1. Start by making a copy of one of the folders in the `mlt-templates`
@@ -17,19 +17,19 @@ template.  Note that this is the description that will be displayed with
 
 4. Other files that typically need to be modified for new templates are:
 * `*.py` files
-* `requirements.txt` with any libraries that your app uses
-* `crd-requirements.txt` (optional) with any operators your model depends on.
-By default `crd-check` is performed during `mlt init` and `mlt deploy`
-which compares crds specified against crds in your cluster. [Example](../mlt-templates/tf-distributed/crd-requirements.txt)
-* `Dockerfile` if the name of the python file to execute is different,
+* `requirements.txt` - updated with any libraries that your app uses
+* `crd-requirements.txt` - (optional) updated with any operators your model depends on.
+By default `crd-check` is performed during the execution of both `mlt init` and `mlt deploy`. The `crd-check` command compares crds specified in crd-requirements.txt against crds in your cluster.
+ [Example](../mlt-templates/tf-distributed/crd-requirements.txt)
+* `Dockerfile` - modified if the name of the python file to execute is different,
 etc.
-* `k8s-templates/job.yaml` for the kubernetes job may need to be
-modified depending on if a CRD is used, if multiple replicas are needed,
+* `k8s-templates/job.yaml` - required for the kubernetes job, may need to be
+modified if a CRD is used, if multiple replicas are needed, or 
 if environment variables need to be set, etc.  Note that all files in
 the `k8s-templates` directory can have variables like `$app`, `$run`,
 and `$image` that will be subbed into the template when the app is
 deployed.
-* `parameters.json` (optional) to define any _additional_ parameters
+* `parameters.json` - (optional) used to define any _additional_ parameters
 specific to your template.  These parameters are added to the app's
 `mlt.json` file when it's initialized.  The parameter values are subbed
 in to the `k8s-templates` directory when the app is deployed.
