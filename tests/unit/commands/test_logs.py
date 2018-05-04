@@ -102,3 +102,26 @@ def test_logs_corrupted_app_run_id(json_mock, open_mock, verify_init, process_he
 
     wrong = output.find("Please re-deploy app again, something went wrong.")
     assert wrong >= 0
+
+def test_logs_kubetail_command_not_found(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
+    run_id = str(uuid.uuid4())
+    os_path_mock.exists.return_value = True
+    json_mock_data = {
+        'last_remote_container': 'gcr.io/app_name:container_id',
+        'last_push_duration': 0.18889,
+        'app_run_id': run_id}
+    json_mock.load.return_value = json_mock_data
+
+
+    logs_command = LogsCommand({'logs': True, '--since': '1m'})
+    logs_command.config = {'name': 'app', 'namespace': 'namespace'}
+
+    process_helpers.side_effect = OSError
+
+    with catch_stdout() as caught_output:
+        with pytest.raises(SystemExit):
+            logs_command.action()
+        output = caught_output.getvalue()
+
+    exception = output.find("Exception:")
+    assert exception >= 0
