@@ -63,19 +63,18 @@ class LogsCommand(Command):
             format(prefix,
                    since,
                    namespace)
+
         try:
             logs = process_helpers.run_popen(log_cmd,
                                              shell=True)
-        except Exception as ex:
-            print("Please make sure you installed "
-                  "all prerequisites listed in Readme.")
+            while True:
+                output = logs.stdout.read(1)
+                if output == '' and logs.poll() is not None:
+                    break
+                if output is not '':
+                    sys.stdout.write(output)
+                    sys.stdout.flush()
+
+        except OSError as ex:
             print("Exception: {}".format(ex))
             sys.exit()
-
-        while True:
-            output = logs.stdout.read(1)
-            if output == '' and logs.poll() is not None:
-                break
-            if output is not '':
-                sys.stdout.write(output)
-                sys.stdout.flush()

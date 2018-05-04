@@ -78,6 +78,7 @@ COMMAND_MAP = (
     ('template', TemplatesCommand),
     ('templates', TemplatesCommand),
     ('undeploy', UndeployCommand),
+    ('log', LogsCommand),
     ('logs', LogsCommand),
 )
 
