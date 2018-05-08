@@ -61,7 +61,7 @@ def test_logs_get_logs(json_mock, open_mock, verify_init, process_helpers, os_pa
     logs_command.config = {'name': 'app', 'namespace': 'namespace'}
 
     log_value = '-'.join(['app', run_id])
-    process_helpers.return_value.stdout.read.side_effect = [log_value, '']
+    process_helpers.return_value.stdout.readline.side_effect = [log_value, '']
     process_helpers.return_value.poll.return_value = 1
     with catch_stdout() as caught_output:
         logs_command.action()

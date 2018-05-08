@@ -21,7 +21,6 @@ import json
 import os
 import sys
 
-
 from mlt.commands import Command
 from mlt.utils import (process_helpers,
                        config_helpers)
@@ -42,7 +41,7 @@ class LogsCommand(Command):
                 data = json.load(f)
         else:
             print("This app has not been deployed yet,"
-                  "so there are no logs to display.")
+                  "there are no logs to display.")
             sys.exit(1)
 
         app_run_id = data['app_run_id'].split("-")
@@ -59,22 +58,23 @@ class LogsCommand(Command):
     @staticmethod
     def get_logs(prefix, since, namespace):
 
-        log_cmd = "kubetail {} --since {} --namespace {}".\
-            format(prefix,
-                   since,
-                   namespace)
-
+        log_cmd = ["kubetail", prefix, "--since",
+                   since, "--namespace", namespace]
         try:
-            logs = process_helpers.run_popen(log_cmd,
-                                             shell=True)
+            logs = process_helpers.run_popen(log_cmd)
+
+            # error_check = logs.stderr.readline()
+            # if error_check:
+            #     print("Error: {}".format(error_check))
+            #     sys.exit(1)
+
             while True:
-                output = logs.stdout.read(1)
+                output = logs.stdout.readline()
                 if output == '' and logs.poll() is not None:
                     break
-                if output is not '':
-                    sys.stdout.write(output)
-                    sys.stdout.flush()
+                if output:
+                    print(output.strip())
 
-        except OSError as ex:
+        except Exception as ex:
             print("Exception: {}".format(ex))
             sys.exit()
