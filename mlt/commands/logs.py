@@ -63,11 +63,6 @@ class LogsCommand(Command):
         try:
             logs = process_helpers.run_popen(log_cmd)
 
-            # error_check = logs.stderr.readline()
-            # if error_check:
-            #     print("Error: {}".format(error_check))
-            #     sys.exit(1)
-
             while True:
                 output = logs.stdout.readline()
                 if output == '' and logs.poll() is not None:

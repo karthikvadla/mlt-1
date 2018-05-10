@@ -55,8 +55,6 @@ def test_logs_get_logs(json_mock, open_mock, verify_init, process_helpers, os_pa
         'last_push_duration': 0.18889,
         'app_run_id': run_id}
     json_mock.load.return_value = json_mock_data
-
-
     logs_command = LogsCommand({'logs': True, '--since': '1m'})
     logs_command.config = {'name': 'app', 'namespace': 'namespace'}
 
@@ -67,7 +65,6 @@ def test_logs_get_logs(json_mock, open_mock, verify_init, process_helpers, os_pa
         logs_command.action()
         output = caught_output.getvalue()
     assert log_value in output
-
 
 def test_logs_no_push_json_file(open_mock, verify_init, process_helpers, os_path_mock):
     os_path_mock.exists.return_value = False
@@ -80,8 +77,7 @@ def test_logs_no_push_json_file(open_mock, verify_init, process_helpers, os_path
             logs_command.action()
         output = caught_output.getvalue()
 
-    not_deployed = output.find("This app has not been deployed yet")
-    assert not_deployed >= 0
+    assert "This app has not been deployed yet" in output
 
 def test_logs_corrupted_app_run_id(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
     run_id = '31dea6fc'
@@ -91,7 +87,6 @@ def test_logs_corrupted_app_run_id(json_mock, open_mock, verify_init, process_he
         'last_push_duration': 0.18889,
         'app_run_id': run_id}
     json_mock.load.return_value = json_mock_data
-
     logs_command = LogsCommand({'logs': True, '--since': '1m'})
     logs_command.config = {'name': 'app', 'namespace': 'namespace'}
 
@@ -100,8 +95,7 @@ def test_logs_corrupted_app_run_id(json_mock, open_mock, verify_init, process_he
             logs_command.action()
         output = caught_output.getvalue()
 
-    wrong = output.find("Please re-deploy app again, something went wrong.")
-    assert wrong >= 0
+    assert"Please re-deploy app again, something went wrong." in output
 
 def test_logs_kubetail_command_not_found(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
     run_id = str(uuid.uuid4())
@@ -111,8 +105,6 @@ def test_logs_kubetail_command_not_found(json_mock, open_mock, verify_init, proc
         'last_push_duration': 0.18889,
         'app_run_id': run_id}
     json_mock.load.return_value = json_mock_data
-
-
     logs_command = LogsCommand({'logs': True, '--since': '1m'})
     logs_command.config = {'name': 'app', 'namespace': 'namespace'}
 
@@ -123,5 +115,4 @@ def test_logs_kubetail_command_not_found(json_mock, open_mock, verify_init, proc
             logs_command.action()
         output = caught_output.getvalue()
 
-    exception = output.find("Exception:")
-    assert exception >= 0
+    assert "Exception:" in output
