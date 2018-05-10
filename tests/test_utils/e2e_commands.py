@@ -27,7 +27,7 @@ import json
 import os
 import time
 import uuid
-from subprocess import Popen
+from subprocess import PIPE, Popen
 
 from mlt.utils.process_helpers import run, run_popen
 from project import basedir
@@ -144,6 +144,16 @@ class CommandTester(object):
         assert run_popen(
             "kubectl get jobs --namespace={}".format(self.namespace),
             shell=True).wait() == 0
+
+    def status(self):
+        status_cmd = ['mlt', 'status']
+        p = Popen(status_cmd, cwd=self.project_dir, stdout=PIPE)
+        output, err = p.communicate()
+        assert p.wait() == 0
+
+        # verify that we have some output, and no errors
+        assert output
+        assert err is None
 
     def undeploy(self):
         p = Popen(['mlt', 'undeploy'], cwd=self.project_dir)

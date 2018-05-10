@@ -1,0 +1,19 @@
+apiVersion: kvc.kubeflow.org/v1
+kind: VolumeManager
+metadata:
+  name: unet-data
+  namespace: dmsuehir
+spec:
+  volumeConfigs:
+    - id: "unet"
+      replicas: 8
+      sourceType: "S3"
+      sourceURL: "s3://dmsuehir/unet/"
+      accessMode: "ReadWriteOnce"
+      endpointURL: "https://storage.googleapis.com"
+      capacity: 18Gi
+      labels:
+        key1: unet
+      options:
+        awsCredentialsSecretName: gcs-creds
+        timeoutForDataDownload: 20m

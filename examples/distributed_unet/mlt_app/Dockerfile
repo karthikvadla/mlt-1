@@ -15,16 +15,14 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 
-.PHONY: dependencies
+FROM python:3
 
-all: main
+ADD requirements.txt /src/deps/requirements.txt
+RUN pip install -r /src/deps/requirements.txt
 
-main: main.py
-	@echo "Should run linting and tests before submitting application"
+WORKDIR /src/app
+ADD . /src/app
 
-build:
-	docker pull pytorch/pytorch:v0.2
-	docker tag pytorch/pytorch:v0.2 ${CONTAINER_NAME}
+RUN pycodestyle -v .
 
-status:
-	@kubectl get pods --namespace ${NAMESPACE} -o wide -a -l job-name=${JOB_NAME}
+ENTRYPOINT [ "python", "test_dist.py", "--is_sync", "0" ]

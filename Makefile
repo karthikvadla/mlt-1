@@ -72,6 +72,7 @@ end-down:
 test-e2e: env-up
 	docker-compose exec test ./resources/wait-port.sh kubernetes 8080
 	docker-compose exec test kubectl cluster-info
+	docker-compose exec test pip install -U pip
 	docker-compose exec test pip install tox
 	docker-compose exec test sh -c "cd /kubeflow && ks apply default -c kubeflow-core"
 	docker-compose exec test sh -c "cd /kubeflow && ks apply default -c pytorch-operator"

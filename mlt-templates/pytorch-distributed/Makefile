@@ -24,3 +24,10 @@ main: main.py
 
 build:
 	docker build --build-arg HTTP_PROXY=${HTTP_PROXY} --build-arg HTTPS_PROXY=${HTTPS_PROXY} --build-arg http_proxy=${http_proxy} --build-arg https_proxy=${https_proxy} -t ${CONTAINER_NAME} .
+
+status:
+	@echo "PyTorch Job:"
+	-@kubectl get pytorchjob ${JOB_NAME} --namespace ${NAMESPACE} || echo "The job may have been undeployed."
+	@echo ""
+	@echo "Pods:"
+	@kubectl get pods --namespace ${NAMESPACE} -o wide -a -l pytorch_job_name=${JOB_NAME}

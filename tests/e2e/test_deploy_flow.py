@@ -38,7 +38,9 @@ def test_deploying_templates(template):
         commands.init(template)
         commands.build()
         commands.deploy()
+        commands.status()
         commands.undeploy()
+        commands.status()
 
 
 def test_no_push_deploy():
@@ -47,8 +49,11 @@ def test_no_push_deploy():
         commands.init()
         commands.build()
         commands.deploy()
+        commands.status()
         commands.deploy(no_push=True)
+        commands.status()
         commands.undeploy()
+        commands.status()
 
 
 def test_watch_build_and_deploy_no_push():
@@ -57,5 +62,8 @@ def test_watch_build_and_deploy_no_push():
         commands.init()
         commands.build(watch=True)
         commands.deploy()
+        commands.status()
         commands.deploy(no_push=True)
+        commands.status()
         commands.undeploy()
+        commands.status()
