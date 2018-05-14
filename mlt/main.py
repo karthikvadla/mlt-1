@@ -27,7 +27,8 @@ Usage:
       [--skip-crd-check] <name>
   mlt build [--watch]
   mlt deploy [--no-push] [-i | --interactive]
-      [--retries=<retries>] [--skip-crd-check] [<kube_spec>]
+      [--retries=<retries>] [--skip-crd-check] [-l | --logs]
+      [--since=<duration>] [<kube_spec>]
   mlt undeploy
   mlt status
   mlt (template | templates) list [--template-repo=<repo>]
@@ -55,6 +56,7 @@ Options:
                             specify which file you'd like to deploy
                             interactively as the `kube_spec`. `kube_spec` is
                             only used with this flag.
+  --logs                    Tail logs after deploying [default: False]
   --watch                   Watch project directory and build on file changes
   --no-push                 Deploy your project to kubernetes using the same
                             image from your last run.

@@ -112,6 +112,20 @@ Deploying gcr.io/my-project-12345/my-app:71fb176d-28a9-46c2-ab51-fe3d4a88b02c
 Inspect created objects by running:
   $ kubectl get --namespace=my-app all
 
+### Provide -l flag to tail logs immediately after deploying.
+$ mlt deploy --no-push -l                                                                                                                                                             master
+Skipping image push
+Deploying gcr.io/constant-cubist-173123/my-app:b9f124d2-ef34-4d66-b137-b8a6026bf782
+
+Inspect created objects by running:
+$ kubectl get --namespace=kvadla all
+
+Tailing logs, Please wait for few seconds...
+Will tail 1 logs...
+my-app-27cd351e-0c4a-4a3b-8d09-6c2e5134c25c-vvc75
+[my-app-27cd351e-0c4a-4a3b-8d09-6c2e5134c25c-vvc75] 2018-05-14 22:09:09.363504: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+[my-app-27cd351e-0c4a-4a3b-8d09-6c2e5134c25c-vvc75] b'Hello, TensorFlow!'
+
 $ mlt status
 NAME                                                  READY     STATUS    RESTARTS   AGE       IP            NODE
 my-app-897cb68f-e91f-42a0-968e-3e8073334450-vvpqj     1/1       Running   0          14s       10.23.45.67   gke-my-cluster-highmem-8-skylake-1
@@ -124,11 +138,12 @@ $ mlt deploy -i --no-push
 Skipping image push
 Deploying localhost:5000/test:d6c9c06b-2b64-4038-a6a9-434bf90d6acc
 
-$ mlt logs
+$ mlt logs                                                                                                                                                                            master
+Tailing logs, Please wait for few seconds...
 Will tail 1 logs...
-my-app-3845a3ff-1a51-45fd-b5da-3f87432d4b0d-p757j
-[my-app-3845a3ff-1a51-45fd-b5da-3f87432d4b0d-p757j] 2018-05-14 18:12:57.404589: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
-[my-app-3845a3ff-1a51-45fd-b5da-3f87432d4b0d-p757j] b'Hello, TensorFlow!'
+my-app-6b9c2e1f-6488-4945-96ce-d2c1a6c32757-99p86
+[my-app-6b9c2e1f-6488-4945-96ce-d2c1a6c32757-99p86] 2018-05-14 22:07:31.600090: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+[my-app-6b9c2e1f-6488-4945-96ce-d2c1a6c32757-99p86] b'Hello, TensorFlow!'
 
 Inspect created objects by running:
 $ kubectl get --namespace=robertso all

@@ -17,13 +17,10 @@
 #
 # SPDX-License-Identifier: EPL-2.0
 #
-import json
-import os
-import sys
+import time
 
 from mlt.commands import Command
-from mlt.utils import (process_helpers,
-                       config_helpers)
+from mlt.utils import (config_helpers, log_helpers)
 
 
 class LogsCommand(Command):
@@ -36,49 +33,6 @@ class LogsCommand(Command):
         Display logs from all pods for latest run.
 
         """
-        if os.path.exists('.push.json'):
-            with open('.push.json', 'r') as f:
-                data = json.load(f)
-        else:
-            print("This app has not been deployed yet,"
-                  "there are no logs to display.")
-            sys.exit(1)
-
-        app_run_id = data['app_run_id'].split("-")
-
-        if len(app_run_id) < 2:
-            print("Please re-deploy app again, something went wrong.")
-            sys.exit(1)
-
-        prefix = "-".join([self.config["name"], app_run_id[0], app_run_id[1]])
-        since = self.args["--since"]
-        namespace = self.config['namespace']
-        self.get_logs(prefix, since, namespace)
-
-    @staticmethod
-    def get_logs(prefix, since, namespace):
-
-        log_cmd = "kubetail {} --since {} " \
-                  "--namespace {}".format(prefix, since, namespace)
-        try:
-            # TODO: remove shell=True. and make log_cmd as List.
-            logs = process_helpers.run_popen(log_cmd, shell=True)
-
-            while True:
-                output = logs.stdout.readline()
-                if output == '' and logs.poll() is not None:
-                    error = logs.stderr.readline()
-                    if error:
-                        raise Exception(error)
-                    break
-                if output:
-                    print(output.strip())
-
-        except Exception as ex:
-            if 'command not found' in str(ex):
-                print("Please install `{}`. "
-                      "It is a prerequisite for `mlt logs` "
-                      "to work".format(str(ex).split()[1]))
-            else:
-                print("Exception: {}".format(ex))
-            sys.exit()
+        print("Tailing logs, Please wait for few seconds...")
+        time.sleep(10)
+        log_helpers.call_logs(self.config, self.args)
