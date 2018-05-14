@@ -29,7 +29,7 @@ from test_utils.io import catch_stdout
 
 @pytest.fixture
 def json_mock(patch):
-    return patch('json')
+    return patch('log_helpers.json')
 
 @pytest.fixture
 def open_mock(patch):
@@ -37,7 +37,7 @@ def open_mock(patch):
 
 @pytest.fixture
 def process_helpers(patch):
-    return patch('process_helpers.run_popen')
+    return patch('log_helpers.process_helpers.run_popen')
 
 @pytest.fixture
 def verify_init(patch):
@@ -45,7 +45,7 @@ def verify_init(patch):
 
 @pytest.fixture
 def os_path_mock(patch):
-    return patch('os.path')
+    return patch('log_helpers.os.path')
 
 def test_logs_get_logs(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
     run_id = str(uuid.uuid4())

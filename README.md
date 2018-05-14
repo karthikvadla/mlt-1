@@ -115,7 +115,7 @@ Inspect created objects by running:
 ### Provide -l flag to tail logs immediately after deploying.
 $ mlt deploy --no-push -l                                                                                                                                                             master
 Skipping image push
-Deploying gcr.io/constant-cubist-173123/my-app:b9f124d2-ef34-4d66-b137-b8a6026bf782
+Deploying gcr.io/my-project-12345/my-app:b9f124d2-ef34-4d66-b137-b8a6026bf782
 
 Inspect created objects by running:
 $ kubectl get --namespace=kvadla all

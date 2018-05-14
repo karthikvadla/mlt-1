@@ -51,7 +51,7 @@ class DeployCommand(Command):
 
         self._deploy_new_container()
 
-        if self.args["-l"]:
+        if self.args["--logs"]:
             self._tail_logs()
 
     def _push(self):
@@ -307,5 +307,5 @@ class DeployCommand(Command):
 
     def _tail_logs(self):
         print("Tailing logs, Please wait for few seconds...")
-        time.sleep(10)
+        time.sleep(5)
         log_helpers.call_logs(self.config, self.args)

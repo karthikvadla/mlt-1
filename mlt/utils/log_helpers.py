@@ -23,12 +23,18 @@ import sys
 
 from mlt.utils import process_helpers
 
+
 def call_logs(config, args):
+    """
+    This method will check for `.push.josn`
+    and provides run-id to _get_logs method to
+    fetch logs.
+    """
     if os.path.exists('.push.json'):
         with open('.push.json', 'r') as f:
             data = json.load(f)
     else:
-        print("This app has not been deployed yet,"
+        print("This app has not been deployed yet, "
               "there are no logs to display.")
         sys.exit(1)
 
@@ -43,8 +49,11 @@ def call_logs(config, args):
     namespace = config['namespace']
     _get_logs(prefix, since, namespace)
 
-def _get_logs(prefix, since, namespace):
 
+def _get_logs(prefix, since, namespace):
+    """
+    Fetches logs using kubetail 
+    """
     log_cmd = "kubetail {} --since {} " \
               "--namespace {}".format(prefix, since, namespace)
     try:
