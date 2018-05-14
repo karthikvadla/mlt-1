@@ -1,0 +1,9 @@
+{
+  "name": "distributed-unet",
+  "namespace": "your-namespace",
+  "gceProject": "your-gce-project",
+  "template_parameters": {
+    "num_ps": "1",
+    "num_workers": "3"
+  }
+}

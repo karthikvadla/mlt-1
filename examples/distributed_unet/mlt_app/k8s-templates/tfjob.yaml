@@ -1,0 +1,92 @@
+apiVersion: "kubeflow.org/v1alpha1"
+kind: TFJob
+metadata:
+  name: $app-$run
+  labels:
+    mlt-app-name: $app
+spec:
+  replicaSpecs:
+    - replicas: $num_ps
+      tfReplicaType: PS
+      template:
+        spec:
+          containers:
+            - image: $image
+              name: tensorflow
+              resources:
+                limits:
+                  memory: "5G"
+                requests:
+                  memory: "5G"
+          restartPolicy: OnFailure
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                    - gke-cluster-n1-standard-4-1
+                    - gke-cluster-n1-standard-4-2
+                    - gke-cluster-n1-standard-4-3
+                    - gke-cluster-n1-standard-4-4
+                    - gke-cluster-n1-standard-4-5
+    - replicas: $num_workers
+      tfReplicaType: WORKER
+      template:
+        spec:
+          containers:
+            - image: $image
+              name: tensorflow
+              env:
+              - name: AWS_ACCESS_KEY_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: gcs-creds
+                    key: awsAccessKeyID
+              - name: AWS_SECRET_ACCESS_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: gcs-creds
+                    key: awsSecretAccessKey
+              - name: AWS_REGION
+                value: "us-west-1"
+              - name: S3_REGION
+                value: "us-west-1"
+              - name: S3_USE_HTTPS
+                value: "true"
+              - name: S3_VERIFY_SSL
+                value: "true"
+              - name: S3_ENDPOINT
+                value: "storage.googleapis.com"
+              - name: OUTPUT_PATH
+                value: "s3://dmsuehir/$app-$run"
+              volumeMounts:
+              - mountPath: /tmp/data
+                name: unet-data
+              resources:
+                limits:
+                  memory: "25G"
+                requests:
+                  memory: "25G"
+          restartPolicy: Never
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                    - gke-cluster-n1-highmem-8-skylake-1
+                    - gke-cluster-n1-highmem-8-skylake-2
+                    - gke-cluster-n1-highmem-8-skylake-3
+          volumes:
+            - name: unet-data
+              hostPath:
+                path: /var/datasets/kvc-resource-abc1234-56789
+  terminationPolicy:
+    chief:
+      replicaName: WORKER
+      replicaIndex: 0

@@ -1,0 +1,28 @@
+apiVersion: "kubeflow.org/v1alpha1"
+kind: "PyTorchJob"
+metadata:
+  name: $app-$run
+  labels:
+    mlt-app-name: $app
+spec:
+  backend: "tcp"
+  masterPort: "23456"
+  replicaSpecs:
+    - replicas: 1
+      replicaType: MASTER
+      template:
+        spec:
+          containers:
+          - image: $image
+            imagePullPolicy: IfNotPresent
+            name: pytorch
+          restartPolicy: OnFailure
+    - replicas: $num_workers
+      replicaType: WORKER
+      template:
+        spec:
+          containers:
+          - image: $image
+            imagePullPolicy: IfNotPresent
+            name: pytorch
+          restartPolicy: OnFailure
