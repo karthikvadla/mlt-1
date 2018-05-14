@@ -61,6 +61,7 @@ def test_logs_get_logs(json_mock, open_mock, verify_init, process_helpers, os_pa
     log_value = '-'.join(['app', run_id])
     process_helpers.return_value.stdout.readline.side_effect = [log_value, '']
     process_helpers.return_value.poll.return_value = 1
+    process_helpers.return_value.stderr.readline.return_value = ''
     with catch_stdout() as caught_output:
         logs_command.action()
         output = caught_output.getvalue()
@@ -97,7 +98,7 @@ def test_logs_corrupted_app_run_id(json_mock, open_mock, verify_init, process_he
 
     assert"Please re-deploy app again, something went wrong." in output
 
-def test_logs_kubetail_command_not_found(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
+def test_logs_exception(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
     run_id = str(uuid.uuid4())
     os_path_mock.exists.return_value = True
     json_mock_data = {
@@ -116,3 +117,27 @@ def test_logs_kubetail_command_not_found(json_mock, open_mock, verify_init, proc
         output = caught_output.getvalue()
 
     assert "Exception:" in output
+
+
+def test_logs_command_not_found(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
+    run_id = str(uuid.uuid4())
+    os_path_mock.exists.return_value = True
+    json_mock_data = {
+        'last_remote_container': 'gcr.io/app_name:container_id',
+        'last_push_duration': 0.18889,
+        'app_run_id': run_id}
+    json_mock.load.return_value = json_mock_data
+    logs_command = LogsCommand({'logs': True, '--since': '1m'})
+    logs_command.config = {'name': 'app', 'namespace': 'namespace'}
+
+    command_not_found = '/bin/sh: kubetail: command not found'
+    process_helpers.return_value.stdout.readline.return_value = ''
+    process_helpers.return_value.poll.return_value = 1
+    process_helpers.return_value.\
+        stderr.readline.side_effect = Exception(command_not_found)
+    with catch_stdout() as caught_output:
+        with pytest.raises(SystemExit):
+            logs_command.action()
+        output = caught_output.getvalue()
+
+    assert 'It is a prerequisite' in output

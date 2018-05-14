@@ -58,18 +58,27 @@ class LogsCommand(Command):
     @staticmethod
     def get_logs(prefix, since, namespace):
 
-        log_cmd = ["kubetail", prefix, "--since",
-                   since, "--namespace", namespace]
+        log_cmd = "kubetail {} --since {} " \
+                  "--namespace {}".format(prefix, since, namespace)
         try:
-            logs = process_helpers.run_popen(log_cmd)
+            # TODO: remove shell=True. and make log_cmd as List.
+            logs = process_helpers.run_popen(log_cmd, shell=True)
 
             while True:
                 output = logs.stdout.readline()
                 if output == '' and logs.poll() is not None:
+                    error = logs.stderr.readline()
+                    if error:
+                        raise Exception(error)
                     break
                 if output:
                     print(output.strip())
 
         except Exception as ex:
-            print("Exception: {}".format(ex))
+            if 'command not found' in str(ex):
+                print("Please install `{}`. "
+                      "It is a prerequisite for `mlt logs` "
+                      "to work".format(str(ex).split()[1]))
+            else:
+                print("Exception: {}".format(ex))
             sys.exit()

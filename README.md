@@ -76,11 +76,13 @@ mlt-0.1.0a1+12.gf49c412.dirty-py2.py3-none-any.whl
 
 ```bash
 $ mlt templates list
-Template        Description
---------------  ----------------------------------------------------------------------------------------------
-hello-world     A TensorFlow python HelloWorld example run through Kubernetes Jobs.
-tf-distributed  A distributed TensorFlow matrix multiplication run through the TensorFlow Kubernetes Operator.
-tf-single-node
+Template             Description
+-------------------  --------------------------------------------------------------------------------------------------
+hello-world          A TensorFlow python HelloWorld example run through Kubernetes Jobs.
+pytorch              Sample distributed application taken from http://pytorch.org/tutorials/intermediate/dist_tuto.html
+pytorch-distributed  A distributed PyTorch MNIST example run using the pytorch-operator.
+tf-dist-mnist        A distributed TensorFlow MNIST model which designates worker 0 as the chief.
+tf-distributed       A distributed TensorFlow matrix multiplication run through the TensorFlow Kubernetes Operator.
 
 $ mlt init my-app --template=hello-world
 [master (root-commit) 40239a2] Initial commit.
@@ -121,6 +123,12 @@ my-app-897cb68f-e91f-42a0-968e-3e8073334450-vvpqj     1/1       Running   0     
 $ mlt deploy -i --no-push
 Skipping image push
 Deploying localhost:5000/test:d6c9c06b-2b64-4038-a6a9-434bf90d6acc
+
+$ mlt logs
+Will tail 1 logs...
+my-app-3845a3ff-1a51-45fd-b5da-3f87432d4b0d-p757j
+[my-app-3845a3ff-1a51-45fd-b5da-3f87432d4b0d-p757j] 2018-05-14 18:12:57.404589: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+[my-app-3845a3ff-1a51-45fd-b5da-3f87432d4b0d-p757j] b'Hello, TensorFlow!'
 
 Inspect created objects by running:
 $ kubectl get --namespace=robertso all
