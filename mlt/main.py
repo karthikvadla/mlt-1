@@ -26,8 +26,8 @@ Usage:
       [--registry=<registry> --namespace=<namespace>]
       [--skip-crd-check] <name>
   mlt build [--watch]
-  mlt deploy [--no-push] [-i | --interactive]
-      [--retries=<retries>] [--skip-crd-check] [-l | --logs]
+  mlt deploy [--no-push] [-i | --interactive] [-l | --logs]
+      [--retries=<retries>] [--skip-crd-check]
       [--since=<duration>] [<kube_spec>]
   mlt undeploy
   mlt status
@@ -120,6 +120,10 @@ def sanitize_input(args, regex=None):
     # -i is an alias, so ensure that we only have to do logic on --interactive
     if args["-i"]:
         args["--interactive"] = True
+
+    # -l is an alias, so ensure that we only have to do logic on --logs
+    if args["-l"]:
+        args["--logs"] = True
 
     # docopt doesn't support type assignment:
     # https://github.com/docopt/docopt/issues/8

@@ -17,7 +17,6 @@
 #
 # SPDX-License-Identifier: EPL-2.0
 #
-import time
 
 from mlt.commands import Command
 from mlt.utils import (config_helpers, log_helpers)
@@ -33,6 +32,4 @@ class LogsCommand(Command):
         Display logs from all pods for latest run.
 
         """
-        print("Tailing logs, Please wait for few seconds...")
-        time.sleep(10)
         log_helpers.call_logs(self.config, self.args)

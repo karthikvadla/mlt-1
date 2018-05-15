@@ -36,6 +36,10 @@ def open_mock(patch):
     return patch('open')
 
 @pytest.fixture
+def sleep_mock(patch):
+    return patch('log_helpers.sleep')
+
+@pytest.fixture
 def process_helpers(patch):
     return patch('log_helpers.process_helpers.run_popen')
 
@@ -47,7 +51,8 @@ def verify_init(patch):
 def os_path_mock(patch):
     return patch('log_helpers.os.path')
 
-def test_logs_get_logs(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
+def test_logs_get_logs(json_mock, open_mock, verify_init, sleep_mock,
+                       process_helpers, os_path_mock):
     run_id = str(uuid.uuid4())
     os_path_mock.exists.return_value = True
     json_mock_data = {
@@ -67,9 +72,9 @@ def test_logs_get_logs(json_mock, open_mock, verify_init, process_helpers, os_pa
         output = caught_output.getvalue()
     assert log_value in output
 
-def test_logs_no_push_json_file(open_mock, verify_init, process_helpers, os_path_mock):
+def test_logs_no_push_json_file(open_mock, verify_init, sleep_mock,
+                                process_helpers, os_path_mock):
     os_path_mock.exists.return_value = False
-
     logs_command = LogsCommand({'logs': True, '--since': '1m'})
     logs_command.config = {'name': 'app', 'namespace': 'namespace'}
 
@@ -80,7 +85,8 @@ def test_logs_no_push_json_file(open_mock, verify_init, process_helpers, os_path
 
     assert "This app has not been deployed yet" in output
 
-def test_logs_corrupted_app_run_id(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
+def test_logs_corrupted_app_run_id(json_mock, open_mock, sleep_mock,
+                                   verify_init, process_helpers, os_path_mock):
     run_id = '31dea6fc'
     os_path_mock.exists.return_value = True
     json_mock_data = {
@@ -98,7 +104,8 @@ def test_logs_corrupted_app_run_id(json_mock, open_mock, verify_init, process_he
 
     assert"Please re-deploy app again, something went wrong." in output
 
-def test_logs_exception(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
+def test_logs_exception(json_mock, open_mock, verify_init, sleep_mock,
+                        process_helpers, os_path_mock):
     run_id = str(uuid.uuid4())
     os_path_mock.exists.return_value = True
     json_mock_data = {
@@ -119,7 +126,8 @@ def test_logs_exception(json_mock, open_mock, verify_init, process_helpers, os_p
     assert "Exception:" in output
 
 
-def test_logs_command_not_found(json_mock, open_mock, verify_init, process_helpers, os_path_mock):
+def test_logs_command_not_found(json_mock, open_mock, sleep_mock,
+                                verify_init, process_helpers, os_path_mock):
     run_id = str(uuid.uuid4())
     os_path_mock.exists.return_value = True
     json_mock_data = {

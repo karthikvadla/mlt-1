@@ -21,6 +21,8 @@ import json
 import os
 import sys
 
+from time import sleep
+
 from mlt.utils import process_helpers
 
 
@@ -54,6 +56,9 @@ def _get_logs(prefix, since, namespace):
     """
     Fetches logs using kubetail
     """
+    print("Tailing logs, Please wait for few seconds...")
+    # TODO: change this to check looping through pods status
+    sleep(10)
     log_cmd = "kubetail {} --since {} " \
               "--namespace {}".format(prefix, since, namespace)
     try:
