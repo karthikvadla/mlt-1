@@ -20,6 +20,7 @@
 
 import sys
 import json
+import os
 
 from mlt.commands import Command
 from mlt.utils import (process_helpers,
@@ -35,32 +36,59 @@ class EventsCommand(Command):
         """
         Display events for the latest run
         """
-        with open('.push.json', 'r') as f:
-            data = json.load(f)
+        self.call_events()
 
-        app_run_id = data['app_run_id'].split('-')
+    def call_events(self):
+        """
+        This method will check for `.push.josn`
+        and provides run-id to _get_event method to
+        fetch events.
+        """
+        if os.path.exists('.push.json'):
+            with open('.push.json', 'r') as f:
+                data = json.load(f)
+        else:
+            print("This app has not been deployed yet, "
+                  "there are no logs to display.")
+            sys.exit(1)
+
+        app_run_id = data['app_run_id'].split("-")
+
+        if len(app_run_id) < 4:
+            print("Please re-deploy app again, something went wrong.")
+            sys.exit(1)
+
         filter_tag = "-".join([self.config["name"],
                                app_run_id[0],
-                               app_run_id[1],
-                               app_run_id[2],
-                               app_run_id[3]])
+                               app_run_id[1]])
         namespace = self.config['namespace']
-        self.get_events(filter_tag, namespace)
+        self._get_events(filter_tag, namespace)
 
     @staticmethod
-    def get_events(filter_tag, namespace):
+    def _get_events(filter_tag, namespace):
+        """
+         Fetches events
+        """
+        events_cmd = ["kubectl", "get", "events", "--namespace", namespace]
+        try:
+            events = process_helpers.run_popen(events_cmd)
+            first_line = True
+            header = events.stdout.readline()
+            while True:
+                output = events.stdout.readline()
+                if output == '' and events.poll() is not None:
+                    error = events.stderr.readline()
+                    if error:
+                        raise Exception(error)
+                    break
 
-        awk = 'awk \'NR=1 || /{}/\''.format(filter_tag)
-        events_cmd = "kubectl get events " \
-                     "--namespace {} | {}"\
-            .format(namespace, awk)
+                if output is not '' and filter_tag in output:
+                    if first_line:
+                        print(header)
+                        first_line = False
+                    sys.stdout.write(output)
+                    sys.stdout.flush()
 
-        events = process_helpers.run_popen(events_cmd, shell=True)
-
-        while True:
-            output = events.stdout.read(1)
-            if output == '' and events.poll() is not None:
-                break
-            if output is not '':
-                sys.stdout.write(output)
-                sys.stdout.flush()
+        except Exception as ex:
+            print("Exception: {}".format(ex))
+            sys.exit()
