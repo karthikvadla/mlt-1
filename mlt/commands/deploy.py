@@ -307,5 +307,5 @@ class DeployCommand(Command):
 
     def _tail_logs(self):
         print("Tailing logs, Please wait for few seconds...")
-        time.sleep(5)
+        time.sleep(10)
         log_helpers.call_logs(self.config, self.args)

@@ -52,7 +52,7 @@ def call_logs(config, args):
 
 def _get_logs(prefix, since, namespace):
     """
-    Fetches logs using kubetail 
+    Fetches logs using kubetail
     """
     log_cmd = "kubetail {} --since {} " \
               "--namespace {}".format(prefix, since, namespace)
