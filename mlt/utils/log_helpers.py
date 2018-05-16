@@ -47,8 +47,13 @@ def call_logs(config, args):
         sys.exit(1)
 
     prefix = "-".join([config["name"], app_run_id[0], app_run_id[1]])
-    since = args["--since"]
     namespace = config['namespace']
+    retires = args["--retries"]
+
+    # check for pod readiness before fetching logs.
+    _check_for_pods_readiness(namespace, prefix, retires)
+
+    since = args["--since"]
     _get_logs(prefix, since, namespace)
 
 
@@ -56,9 +61,6 @@ def _get_logs(prefix, since, namespace):
     """
     Fetches logs using kubetail
     """
-    print("Tailing logs, Please wait for few seconds...")
-    # TODO: change this to check looping through pods status
-    sleep(10)
     log_cmd = "kubetail {} --since {} " \
               "--namespace {}".format(prefix, since, namespace)
     try:
@@ -83,3 +85,62 @@ def _get_logs(prefix, since, namespace):
         else:
             print("Exception: {}".format(ex))
         sys.exit()
+
+def _get_pod_names(namespace, filter_tag):
+    pod_names = []
+    pods = process_helpers.run_popen(
+        "kubectl get pods --namespace {} ".format(namespace), shell=True
+    ).stdout.read().decode('utf-8').strip().splitlines()
+    if pods:
+        for pod_name in pods:
+            if filter_tag in pod_name:
+                pod_names.append(str(pod_name.split(" ")[0]))
+    else:
+        raise ValueError(
+            "No pods found in namespace: {}".format(namespace))
+    return pod_names
+
+def _check_for_pods_readiness(namespace, filter_tag, retries):
+    pod_names = _get_pod_names(namespace, filter_tag)
+    count = 0
+    for pod_name in pod_names:
+        if _is_ready(namespace, pod_name, retries):
+            count = count + 1
+
+    if not len(pod_names) == count:
+        print("Tailing logs from pods which are UP")
+
+
+def _is_ready(namespace, podname, retires):
+    print("Checking for pod readiness: {}".format(podname))
+    tries = 0
+    while True:
+        pod = process_helpers.run_popen(
+            "kubectl get pods --namespace {} {} -o json".format(
+                namespace, podname),
+            shell=True).stdout.read().decode('utf-8')
+        if not pod:
+            continue
+
+        # check if pod is in running state
+        # gcr stores an auth token which could be returned as part
+        # of the pod json data
+        pod = json.loads(pod)
+        if pod.get('items') or pod.get('status'):
+            # if there's more than 1 thing returned, we have
+            # `pod['items']['status']` otherwise we will always have
+            # `pod['status'], so by the second if below we're safe
+            # first item is what we care about (or only item)
+            if pod.get('items'):
+                pod = pod['items'][0]
+            if pod['status']['phase'] == 'Running':
+                print("{} is UP".format(podname))
+                return True
+
+        if tries == retires:
+            print("Max retires reached.")
+            return False
+        tries += 1
+        print("Retrying {}/{}".format(
+            tries, retires))
+        sleep(1)

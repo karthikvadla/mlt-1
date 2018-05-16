@@ -32,7 +32,7 @@ Usage:
   mlt undeploy
   mlt status
   mlt (template | templates) list [--template-repo=<repo>]
-  mlt (log | logs) [--since=<duration>]
+  mlt (log | logs) [--since=<duration>] [--retries=<retries>]
 
 Options:
   --template=<template>     Template name for app
