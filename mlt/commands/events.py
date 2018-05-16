@@ -49,7 +49,7 @@ class EventsCommand(Command):
                 data = json.load(f)
         else:
             print("This app has not been deployed yet, "
-                  "there are no logs to display.")
+                  "there are no events to display.")
             sys.exit(1)
 
         app_run_id = data['app_run_id'].split("-")
@@ -69,10 +69,10 @@ class EventsCommand(Command):
         """
          Fetches events
         """
-        events_cmd = ["kubectl", "get", "events", "--namespace", namespace]
+        events_cmd = "kubectl get events --namespace {}".format(namespace)
         try:
-            events = process_helpers.run_popen(events_cmd)
-            first_line = True
+            events = process_helpers.run_popen(events_cmd, shell=True)
+            header_line = True
             header = events.stdout.readline()
             while True:
                 output = events.stdout.readline()
@@ -83,12 +83,19 @@ class EventsCommand(Command):
                     break
 
                 if output is not '' and filter_tag in output:
-                    if first_line:
+                    if header_line:
                         print(header)
-                        first_line = False
+                        header_line = False
                     sys.stdout.write(output)
                     sys.stdout.flush()
 
+            if header_line:
+                print("No events to display for this job")
         except Exception as ex:
-            print("Exception: {}".format(ex))
+            if 'command not found' in str(ex):
+                print("Please install `{}`. "
+                      "It is a prerequisite for `mlt events` "
+                      "to work".format(str(ex).split()[1]))
+            else:
+                print("Exception: {}".format(ex))
             sys.exit()

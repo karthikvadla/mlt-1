@@ -127,6 +127,10 @@ $ kubectl get --namespace=robertso all
 Connecting to pod...
 root@test-9e035719-1d8b-4e0c-adcb-f706429ffeac-wl42v:/src/app# ls
 Dockerfile  Makefile  README.md  k8s  k8s-templates  main.py  mlt.json	requirements.txt
+
+# Displays events for the current job
+$ mlt events
+
 ```
 
 ### Examples

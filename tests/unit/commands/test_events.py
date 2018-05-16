@@ -102,7 +102,7 @@ def test_events_corrupted_app_run_id(json_mock, open_mock,
 
     assert"Please re-deploy app again, something went wrong." in output
 
-def test_events_called_process_error(json_mock, open_mock, verify_init,
+def test_events_no_resources_found(json_mock, open_mock, verify_init,
                         process_helpers, os_path_mock):
     run_id = str(uuid.uuid4())
     os_path_mock.exists.return_value = True
@@ -115,11 +115,34 @@ def test_events_called_process_error(json_mock, open_mock, verify_init,
     events_command = EventsCommand({'events': True})
     events_command.config = {'name': 'app', 'namespace': 'namespace'}
 
-    process_helpers.side_effect = OSError
+    process_helpers.side_effect = Exception("No resources found")
 
     with catch_stdout() as caught_output:
         with pytest.raises(SystemExit):
             events_command.action()
         output = caught_output.getvalue()
 
-    assert "Exception:" in output
+    assert "No resources found" in output
+
+def test_events_no_events_to_display(json_mock, open_mock, verify_init,
+                        process_helpers, os_path_mock):
+    run_id = str(uuid.uuid4())
+    os_path_mock.exists.return_value = True
+    json_mock_data = {
+        'last_remote_container': 'gcr.io/app_name:container_id',
+        'last_push_duration': 0.18889,
+        'app_run_id': run_id}
+    json_mock.load.return_value = json_mock_data
+
+    events_command = EventsCommand({'events': True})
+    events_command.config = {'name': 'app', 'namespace': 'namespace'}
+
+    head_value = "LAST SEEN   FIRST SEEN   COUNT"
+    process_helpers.return_value.stdout.readline.side_effect = [head_value, "current job events missing", '']
+    process_helpers.return_value.poll.return_value = 1
+    process_helpers.return_value.stderr.readline.return_value = ''
+    with catch_stdout() as caught_output:
+        events_command.action()
+        output = caught_output.getvalue()
+
+    assert "No events to display for this job" in output
