@@ -33,6 +33,7 @@ Usage:
   mlt status
   mlt (template | templates) list [--template-repo=<repo>]
   mlt (log | logs) [--since=<duration>] [--retries=<retries>]
+  mlt events
 
 Options:
   --template=<template>     Template name for app
@@ -69,7 +70,7 @@ from docopt import docopt
 
 from mlt.commands import (BuildCommand, DeployCommand, InitCommand,
                           TemplatesCommand, UndeployCommand,
-                          StatusCommand, LogsCommand)
+                          StatusCommand, LogsCommand, EventsCommand)
 
 from mlt.utils import regex_checks
 
@@ -85,6 +86,7 @@ COMMAND_MAP = (
     ('undeploy', UndeployCommand),
     ('log', LogsCommand),
     ('logs', LogsCommand),
+    ('events', EventsCommand)
 )
 
 

@@ -26,3 +26,4 @@ from mlt.commands.status import StatusCommand  # noqa
 from mlt.commands.templates import TemplatesCommand  # noqa
 from mlt.commands.undeploy import UndeployCommand  # noqa
 from mlt.commands.logs import LogsCommand # noqa
+from mlt.commands.events import EventsCommand  # noqa
