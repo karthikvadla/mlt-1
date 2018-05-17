@@ -211,6 +211,37 @@ def test_logs_get_pod_names(process_helpers):
 
     process_helpers.return_value.stdout.read.return_value = all_pods
 
-    _, output = get_pod_names(namespace='namespace', filter_tag=filter_tag, retries=5)
+    _, pod_names = get_pod_names(namespace='namespace', filter_tag=filter_tag, retries=5)
 
-    assert len(filter_tag_pods) == len(output)
+    assert len(filter_tag_pods) == len(pod_names)
+
+
+def test_logs_get_pod_names_no_pods_found(process_helpers):
+    run_id = str(uuid.uuid4()).split("-")
+    filter_tag = "-".join(["app", run_id[0], run_id[1]])
+
+    all_pods = ""
+
+    process_helpers.return_value.stdout.read.return_value = all_pods
+
+    with pytest.raises(ValueError):
+        get_pod_names(namespace='namespace', filter_tag=filter_tag, retries=5)
+
+
+def test_logs_get_pod_names_retrying_msg(process_helpers, sleep_mock):
+    run_id = str(uuid.uuid4()).split("-")
+    filter_tag = "-".join(["app", run_id[0], run_id[1]])
+
+    random_pods = "\n".join([ "random_pod_1",
+                  "random_pod_2"])
+
+    process_helpers.return_value.stdout.read.return_value = random_pods
+
+    with catch_stdout() as caught_output:
+        tries, pod_names = get_pod_names(namespace='namespace', filter_tag=filter_tag, retries=2)
+        output = caught_output.getvalue()
+
+    assert "Retrying" in output
+    assert len(pod_names) == 0
+    assert tries == 2
+    assert "Max retries reached" in output

@@ -91,6 +91,10 @@ def get_pod_names(namespace, filter_tag, retries):
     pod_names = []
     tries = 0
     while not pod_names:
+        if tries == retries:
+            print("Max retries reached")
+            break
+
         pods = process_helpers.run_popen(
             "kubectl get pods --namespace {} ".format(namespace), shell=True
         ).stdout.read().strip().splitlines()
