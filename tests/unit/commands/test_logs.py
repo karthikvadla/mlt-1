@@ -23,7 +23,10 @@ from __future__ import print_function
 import pytest
 
 import uuid
+from mlt.utils.log_helpers import (check_for_pods_readiness,
+                                   get_pod_names)
 from mlt.commands.logs import LogsCommand
+
 from test_utils.io import catch_stdout
 
 
@@ -44,14 +47,27 @@ def process_helpers(patch):
     return patch('log_helpers.process_helpers.run_popen')
 
 @pytest.fixture
-def verify_init(patch):
-    return patch('config_helpers.load_config')
-
-@pytest.fixture
 def os_path_mock(patch):
     return patch('log_helpers.os.path')
 
+@pytest.fixture
+def check_for_pods_readiness_mock(patch):
+    return patch('log_helpers.check_for_pods_readiness')
+
+@pytest.fixture
+def get_pod_names_mock(patch):
+    return patch('log_helpers.get_pod_names')
+
+@pytest.fixture
+def is_ready_mock(patch):
+    return patch('log_helpers.is_ready')
+
+@pytest.fixture
+def verify_init(patch):
+    return patch('config_helpers.load_config')
+
 def test_logs_get_logs(json_mock, open_mock, verify_init, sleep_mock,
+                       check_for_pods_readiness_mock,
                        process_helpers, os_path_mock):
     run_id = str(uuid.uuid4())
     os_path_mock.exists.return_value = True
@@ -60,7 +76,7 @@ def test_logs_get_logs(json_mock, open_mock, verify_init, sleep_mock,
         'last_push_duration': 0.18889,
         'app_run_id': run_id}
     json_mock.load.return_value = json_mock_data
-    logs_command = LogsCommand({'logs': True, '--since': '1m'})
+    logs_command = LogsCommand({'logs': True, '--since': '1m', '--retries':5})
     logs_command.config = {'name': 'app', 'namespace': 'namespace'}
 
     log_value = '-'.join(['app', run_id])
@@ -75,7 +91,7 @@ def test_logs_get_logs(json_mock, open_mock, verify_init, sleep_mock,
 def test_logs_no_push_json_file(open_mock, verify_init, sleep_mock,
                                 process_helpers, os_path_mock):
     os_path_mock.exists.return_value = False
-    logs_command = LogsCommand({'logs': True, '--since': '1m'})
+    logs_command = LogsCommand({'logs': True, '--since': '1m', '--retries':5})
     logs_command.config = {'name': 'app', 'namespace': 'namespace'}
 
     with catch_stdout() as caught_output:
@@ -94,7 +110,7 @@ def test_logs_corrupted_app_run_id(json_mock, open_mock, sleep_mock,
         'last_push_duration': 0.18889,
         'app_run_id': run_id}
     json_mock.load.return_value = json_mock_data
-    logs_command = LogsCommand({'logs': True, '--since': '1m'})
+    logs_command = LogsCommand({'logs': True, '--since': '1m', '--retries':5})
     logs_command.config = {'name': 'app', 'namespace': 'namespace'}
 
     with catch_stdout() as caught_output:
@@ -105,6 +121,7 @@ def test_logs_corrupted_app_run_id(json_mock, open_mock, sleep_mock,
     assert"Please re-deploy app again, something went wrong." in output
 
 def test_logs_exception(json_mock, open_mock, verify_init, sleep_mock,
+                        check_for_pods_readiness_mock,
                         process_helpers, os_path_mock):
     run_id = str(uuid.uuid4())
     os_path_mock.exists.return_value = True
@@ -113,7 +130,7 @@ def test_logs_exception(json_mock, open_mock, verify_init, sleep_mock,
         'last_push_duration': 0.18889,
         'app_run_id': run_id}
     json_mock.load.return_value = json_mock_data
-    logs_command = LogsCommand({'logs': True, '--since': '1m'})
+    logs_command = LogsCommand({'logs': True, '--since': '1m', '--retries':5})
     logs_command.config = {'name': 'app', 'namespace': 'namespace'}
 
     process_helpers.side_effect = OSError
@@ -126,7 +143,7 @@ def test_logs_exception(json_mock, open_mock, verify_init, sleep_mock,
     assert "Exception:" in output
 
 
-def test_logs_command_not_found(json_mock, open_mock, sleep_mock,
+def test_logs_command_not_found(json_mock, open_mock, sleep_mock, check_for_pods_readiness_mock,
                                 verify_init, process_helpers, os_path_mock):
     run_id = str(uuid.uuid4())
     os_path_mock.exists.return_value = True
@@ -135,7 +152,7 @@ def test_logs_command_not_found(json_mock, open_mock, sleep_mock,
         'last_push_duration': 0.18889,
         'app_run_id': run_id}
     json_mock.load.return_value = json_mock_data
-    logs_command = LogsCommand({'logs': True, '--since': '1m'})
+    logs_command = LogsCommand({'logs': True, '--since': '1m', '--retries':5})
     logs_command.config = {'name': 'app', 'namespace': 'namespace'}
 
     command_not_found = '/bin/sh: kubetail: command not found'
@@ -149,3 +166,51 @@ def test_logs_command_not_found(json_mock, open_mock, sleep_mock,
         output = caught_output.getvalue()
 
     assert 'It is a prerequisite' in output
+
+def test_logs_check_for_pods_readiness(get_pod_names_mock, is_ready_mock):
+    run_id = str(uuid.uuid4()).split("-")
+    filter_tag = "-".join(["app", run_id[0], run_id[1]])
+    get_pod_names_mock.return_value = (1,
+                                       [filter_tag+"-ps-"+run_id[3],
+                                        filter_tag+"-worker1-"+run_id[3],
+                                        filter_tag+"-worker2-"+run_id[3]])
+    is_ready_mock.return_value = True
+    with catch_stdout() as caught_output:
+        check_for_pods_readiness(namespace='namespace', filter_tag=filter_tag, retries=5)
+        output = caught_output.getvalue()
+
+    assert "Checking for pod readiness" in output
+
+def test_logs_check_for_pods_readiness_max_tries_reached(get_pod_names_mock, is_ready_mock):
+    run_id = str(uuid.uuid4()).split("-")
+    filter_tag = "-".join(["app", run_id[0], run_id[1]])
+    get_pod_names_mock.return_value = (5,
+                                       [filter_tag+"-ps-"+run_id[3],
+                                        filter_tag+"-worker1-"+run_id[3]])
+    is_ready_mock.return_value = True
+
+    with catch_stdout() as caught_output:
+        check_for_pods_readiness(namespace='namespace', filter_tag=filter_tag, retries=5)
+        output = caught_output.getvalue()
+
+    assert "Max retires reached." in output
+
+def test_logs_get_pod_names(process_helpers):
+    run_id = str(uuid.uuid4()).split("-")
+    filter_tag = "-".join(["app", run_id[0], run_id[1]])
+
+    filter_tag_pods = [filter_tag+"-ps-"+run_id[3],
+                       filter_tag+"-worker1-"+run_id[3],
+                       filter_tag+"-worker2-"+run_id[3]]
+
+    all_pods = "\n".join([ "random_pod_1",
+                  "random_pod_2",
+                  filter_tag+"-ps-"+run_id[3],
+                  filter_tag+"-worker1-"+run_id[3],
+                  filter_tag+"-worker2-"+run_id[3]])
+
+    process_helpers.return_value.stdout.read.return_value = all_pods
+
+    _, output = get_pod_names(namespace='namespace', filter_tag=filter_tag, retries=5)
+
+    assert len(filter_tag_pods) == len(output)
