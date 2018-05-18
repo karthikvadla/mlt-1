@@ -36,6 +36,7 @@ Prerequisites:
 - [python](https://www.python.org/downloads/)
 - [pip](https://pip.pypa.io/en/stable/installing/)
 - [TFJob operator](https://github.com/kubeflow/tf-operator#installing-the-tfjob-crd-and-operator-on-your-k8s-cluster) (for the distributed tensorflow templates)
+- [PyTorch operator](https://github.com/kubeflow/pytorch-operator) (for the pytorch-distributed template)
 
 
 ## Installation
@@ -75,7 +76,9 @@ mlt-0.1.0a1+12.gf49c412.dirty-py2.py3-none-any.whl
 [![asciicast](https://asciinema.org/a/171353.png)](https://asciinema.org/a/171353)
 
 ```bash
-$ mlt templates list
+
+$ mlt template list
+
 Template             Description
 -------------------  --------------------------------------------------------------------------------------------------
 hello-world          A TensorFlow python HelloWorld example run through Kubernetes Jobs.
