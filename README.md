@@ -97,8 +97,26 @@ $ mlt init my-app --template=hello-world
 
 $ cd my-app
 
-# Optional step: Modify parameters in the mlt.json file
-$ vim mlt.json
+# List the config parameters
+$ mlt config list
+Parameter Name                Value
+----------------------------  ----------------------
+gceProject                    my-project-12345
+namespace                     my-app
+name                          my-app
+template_parameters.greeting  Hello
+
+# Update the greeting parameter
+$ mlt config set template_parameters.greeting Hi
+
+# Check the config list to see the updated parameter value
+$ mlt config list
+Parameter Name                Value
+----------------------------  ----------------------
+gceProject                    constant-cubist-173123
+namespace                     dmsuehir
+name                          dmsuehir
+template_parameters.greeting  Hi
 
 $ mlt build
 Starting build my-app:71fb176d-28a9-46c2-ab51-fe3d4a88b02c
@@ -150,7 +168,7 @@ my-app-09aa35f4-bdf8-4da8-8400-8728bf7afa33-sqzqg
 [my-app-09aa35f4-bdf8-4da8-8400-8728bf7afa33-sqzqg] b'Hello, TensorFlow!'
 
 Inspect created objects by running:
-$ kubectl get --namespace=robertso all
+$ kubectl get --namespace=my-app all
 
 Connecting to pod...
 root@test-9e035719-1d8b-4e0c-adcb-f706429ffeac-wl42v:/src/app# ls
