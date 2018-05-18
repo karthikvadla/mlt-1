@@ -120,7 +120,7 @@ Deploying gcr.io/my-project-12345/my-app:b9f124d2-ef34-4d66-b137-b8a6026bf782
 Inspect created objects by running:
 $ kubectl get --namespace=my-app all
 
-Checking for pod readiness
+Checking for pod(s) readiness
 Retrying 1/10
 Retrying 2/10
 Will tail 1 logs...
@@ -141,7 +141,7 @@ Skipping image push
 Deploying localhost:5000/test:d6c9c06b-2b64-4038-a6a9-434bf90d6acc
 
 $ mlt logs
-Checking for pod readiness
+Checking for pod(s) readiness
 Retrying 1/10
 Retrying 2/10
 Will tail 1 logs...
