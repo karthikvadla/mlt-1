@@ -97,7 +97,7 @@ def check_for_pods_readiness(namespace, filter_tag, retries):
     pods_found = 0
     pods_running = 0
     while True:
-        if tries == retries:
+        if tries >= retries:
             print("Max retries Reached.")
             break
 
@@ -118,11 +118,6 @@ def check_for_pods_readiness(namespace, filter_tag, retries):
                     status = str(pod.split()[2].strip())
                     if status == 'Running':
                         pods_running += 1
-                    else:
-                        tries += 1
-                        print("Retrying {}/{}".format(tries, retries))
-                        sleep(1)
-                        continue
 
         if pods_running == pods_found and pods_found > 0:
             break
