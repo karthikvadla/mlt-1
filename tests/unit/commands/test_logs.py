@@ -23,7 +23,7 @@ from __future__ import print_function
 import pytest
 
 import uuid
-from mlt.utils.log_helpers import check_for_pods_readiness, get_namespace_pods
+from mlt.utils.log_helpers import check_for_pods_readiness
 from mlt.commands.logs import LogsCommand
 
 from test_utils.io import catch_stdout
@@ -52,10 +52,6 @@ def os_path_mock(patch):
 @pytest.fixture
 def check_for_pods_readiness_mock(patch):
     return patch('log_helpers.check_for_pods_readiness')
-
-@pytest.fixture
-def get_namespace_pods_mock(patch):
-    return patch('log_helpers.get_namespace_pods')
 
 @pytest.fixture
 def verify_init(patch):
@@ -164,11 +160,31 @@ def test_logs_command_not_found(json_mock, open_mock, sleep_mock, check_for_pods
 
     assert 'It is a prerequisite' in output
 
-def test_logs_check_for_pods_readiness(get_namespace_pods_mock):
+
+def test_logs_no_logs_found(json_mock, open_mock, sleep_mock, check_for_pods_readiness_mock,
+                                verify_init, process_helpers, os_path_mock):
+    run_id = str(uuid.uuid4())
+    os_path_mock.exists.return_value = True
+    json_mock_data = {
+        'last_remote_container': 'gcr.io/app_name:container_id',
+        'last_push_duration': 0.18889,
+        'app_run_id': run_id}
+    json_mock.load.return_value = json_mock_data
+    logs_command = LogsCommand({'logs': True, '--since': '1m', '--retries':5})
+    logs_command.config = {'name': 'app', 'namespace': 'namespace'}
+    check_for_pods_readiness_mock.return_value = False
+    with catch_stdout() as caught_output:
+        logs_command.action()
+        output = caught_output.getvalue()
+    assert "No logs found for this job." in output
+
+
+def test_logs_check_for_pods_readiness(process_helpers, sleep_mock):
     run_id = str(uuid.uuid4()).split("-")
     filter_tag = "-".join(["app", run_id[0], run_id[1]])
-    get_namespace_pods_mock.return_value = (True, 1,
-                                            [filter_tag+"-ps-"+run_id[3]+" 1/1  Running  0  16d",
+    process_helpers.return_value.stdout.read.return_value = "\n".join(["random-pod1",
+                                            "random-pod2",
+                                            filter_tag+"-ps-"+run_id[3]+" 1/1  Running  0  16d",
                                              filter_tag+"-worker1-"+run_id[3]+" 1/1  Running  0  16d",
                                              filter_tag+"-worker2-"+run_id[3]+" 1/1  Running  0  16d"])
 
@@ -179,48 +195,15 @@ def test_logs_check_for_pods_readiness(get_namespace_pods_mock):
     assert found == True
     assert "Checking for pod(s) readiness" in output
 
-def test_logs_check_for_pods_readiness_no_logs_msg(get_namespace_pods_mock):
+def test_logs_check_for_pods_readiness_max_retries_reached(process_helpers, sleep_mock):
     run_id = str(uuid.uuid4()).split("-")
     filter_tag = "-".join(["app", run_id[0], run_id[1]])
-    get_namespace_pods_mock.return_value = (False, 5, [])
 
+    process_helpers.return_value.stdout.read.return_value = "\n".join(["random-pod1",
+                                                                      "random-pod2"])
     with catch_stdout() as caught_output:
         found = check_for_pods_readiness(namespace='namespace', filter_tag=filter_tag, retries=5)
         output = caught_output.getvalue()
 
     assert found == False
-    assert "No logs to show because no pods founds for this job." in output
-
-def test_logs_check_for_pods_readiness_max_retries_reached(get_namespace_pods_mock):
-    run_id = str(uuid.uuid4()).split("-")
-    filter_tag = "-".join(["app", run_id[0], run_id[1]])
-    get_namespace_pods_mock.return_value = (True, 5, [filter_tag+"-ps-"+run_id[3]+" 1/1  Running  0  16d"])
-
-    with catch_stdout() as caught_output:
-        found = check_for_pods_readiness(namespace='namespace', filter_tag=filter_tag, retries=5)
-        output = caught_output.getvalue()
-
-    assert found == True
     assert "Max retries Reached." in output
-
-def test_logs_get_namespace_pods(process_helpers):
-    run_id = str(uuid.uuid4()).split("-")
-    filter_tag = "-".join(["app", run_id[0], run_id[1]])
-
-    all_pods = [ "random_pod_1",
-                 "random_pod_2",
-                 filter_tag + "-ps-" + run_id[3] + " 1/1  Running  0  16d",
-                 filter_tag + "-worker1-" + run_id[3] + " 1/1  Running  0  16d",
-                 filter_tag + "-worker2-" + run_id[3] + " 1/1  Running  0  16d"]
-
-    all_pods_str = "\n".join([ "random_pod_1",
-                               "random_pod_2",
-                               filter_tag + "-ps-" + run_id[3] + " 1/1  Running  0  16d",
-                               filter_tag + "-worker1-" + run_id[3] + " 1/1  Running  0  16d",
-                               filter_tag + "-worker2-" + run_id[3] + " 1/1  Running  0  16d"])
-
-    process_helpers.return_value.stdout.read.return_value = all_pods_str
-
-    _, _, pods = get_namespace_pods(namespace='namespace', filter_tag=filter_tag, retries=5)
-
-    assert len(pods) == len(all_pods)

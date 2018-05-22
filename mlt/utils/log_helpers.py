@@ -56,6 +56,8 @@ def call_logs(config, args):
     if found:
         since = args["--since"]
         _get_logs(prefix, since, namespace)
+    else:
+        print("No logs found for this job.")
 
 
 def _get_logs(prefix, since, namespace):
@@ -88,57 +90,47 @@ def _get_logs(prefix, since, namespace):
         sys.exit()
 
 
-def get_namespace_pods(namespace, filter_tag, retries):
+def check_for_pods_readiness(namespace, filter_tag, retries):
+    print("Checking for pod(s) readiness")
     tries = 0
-    found = False
+
+    pods_found = 0
+    pods_running = 0
     while True:
         if tries == retries:
-            print("Max retries reached.")
+            print("Max retries Reached.")
             break
 
+        # TODO: Remove shell=True and make it to work.
         pods = process_helpers.run_popen(
             "kubectl get pods --namespace {} ".format(namespace), shell=True
         ).stdout.read().strip().splitlines()
 
         if not pods:
+            tries += 1
+            print("Retrying {}/{}".format(tries, retries))
+            sleep(1)
             continue
         else:
             for pod in pods:
                 if filter_tag in pod:
-                    found = True
-                    break
-            if found:
-                return found, tries, pods
-            else:
-                tries += 1
-                print("Retrying {}/{}".format(tries, retries))
-                sleep(1)
-                continue
-    return found, tries, []
-
-
-def check_for_pods_readiness(namespace, filter_tag, retries):
-    print("Checking for pod(s) readiness")
-    found, tries, pods = get_namespace_pods(namespace, filter_tag, retries)
-
-    if not found:
-        print("No logs to show because no pods founds for this job.")
-    else:
-        for pod in pods:
-            if tries == retries:
-                print("Max retries Reached.")
-                break
-            if filter_tag in pod:
-                running = False
-                while not running:
-                    if tries == retries:
-                        break
+                    pods_found += 1
                     status = str(pod.split()[2].strip())
-                    if status != 'Running':
+                    if status == 'Running':
+                        pods_running += 1
+                    else:
                         tries += 1
                         print("Retrying {}/{}".format(tries, retries))
                         sleep(1)
                         continue
-                    else:
-                        running = True
-    return found
+
+        if pods_running == pods_found and pods_found > 0:
+            break
+        else:
+            pods_found = 0
+            pods_running = 0
+            tries += 1
+            print("Retrying {}/{}".format(tries, retries))
+            sleep(1)
+
+    return pods_found > 0
